@@ -127,11 +127,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="MyCompiler.cpp" />
-    <ClCompile Include="MyVector.cpp" />
+    <ClCompile Include="HashTable.cpp" />
+    <ClCompile Include="Lexer.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="NFA.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="lexemes.txt" />
+    <Text Include="Program.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="HashTable.h" />
+    <ClInclude Include="Lexer.h" />
     <ClInclude Include="MyVector.h" />
+    <ClInclude Include="NFA.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

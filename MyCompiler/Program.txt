@@ -1,0 +1,15 @@
+int main() {
+	int a,b;
+	float c,d;
+	fload testErrorCatch;
+
+	a = 1;
+	b = 2;
+	c = 3.0;
+	d = 4.0;
+
+	a = a + b;
+	c = c+d;
+
+	return 0;
+}
