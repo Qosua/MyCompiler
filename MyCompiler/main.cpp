@@ -1,38 +1,43 @@
 ﻿#pragma once
 
-#include "NFA.h"
+#include "Lexer.h"
 
 int main() {
     
-    NumNFA nfa;
+    //NumNFA nfa;
 
-    std::vector<std::string> tests = {
-        "12123", 
-        "123123.", 
-        "0123", 
-        "0.123", 
-        "0.1123,123",
-        "0 1123 123",
-        "01a",
-        "-01",//
-        "00004",
-        "\n00004",
-        "",
-        " ",
-        "2131.123123.1233",
-        ".",//
-    };
-    
-    for (std::string test : tests) {
+    //std::vector<std::string> tests = {
+    //    "12123", 
+    //    "123123.", 
+    //    "0123", 
+    //    "0.123", 
+    //    "0.1123,123",
+    //    "0 1123 123",
+    //    "01a",
+    //    "-01",//
+    //    "00004",
+    //    "\n00004",
+    //    "",
+    //    " ",
+    //    "2131.123123.1233",
+    //    ".",//
+    //};
+    //
+    //for (std::string test : tests) {
 
-        LexemType tupe = nfa.detectLexem(test);
+    //    LexemType tupe = nfa.detectLexem(test);
 
-        if (tupe != LexemType::Error)
-            std::cout << test << " - OKAY\n";
-        else
-            std::cout << test << " - NOT OKAY\n";
+    //    if (tupe != LexemType::Error)
+    //        std::cout << test << " - OKAY\n";
+    //    else
+    //        std::cout << test << " - NOT OKAY\n";
 
-    }
+    //}
+
+
+    Lexer lexer("Program.txt");
+    lexer.run();
+
 
     return 0;
 

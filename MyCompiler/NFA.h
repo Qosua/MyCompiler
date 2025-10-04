@@ -11,6 +11,7 @@ struct Node {
 	LexemType lexemToDetectOnNode;
 };
 
+//It is General NFA for any finite words set
 class NFA {
 
 public:

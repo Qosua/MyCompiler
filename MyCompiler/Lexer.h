@@ -1,6 +1,7 @@
 #pragma once
 
 #include "HashTable.h"
+#include "NFA.h"
 
 #include <string>
 #include <vector>
@@ -14,11 +15,15 @@ public:
 	~Lexer();
 
 	void run();
+	void processRelatedInput(std::string& lexem, char& c);
+	void processUnRelatedInput(std::string& lexem, char& c);
 	HashTable* getHashTable();
 
 private:
-	std::vector<std::unordered_map<char, int>> transitionsTable;
-	int startTransitionIndex = 0;
 	std::fstream file;
+
+	NFA nfa;
+	IdNFA idNfa;
+	NumNFA numNfa;
 	
 };
