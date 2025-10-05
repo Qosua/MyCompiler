@@ -47,7 +47,7 @@ void Lexer::run() {
 			case ',': processRelatedInput(tempLexem, c); break;
 			case ';': processRelatedInput(tempLexem, c); break;
 			case ':': processRelatedInput(tempLexem, c); break;
-			case '.': processRelatedInput(tempLexem, c); break;
+			//case '.': processRelatedInput(tempLexem, c); break;
 		}
 		//unrelated to the Program.txt
 		switch (c) {
