@@ -15,15 +15,16 @@ public:
 	~Lexer();
 
 	void run();
-	void processRelatedInput(std::string& lexem, char& c);
-	void processUnRelatedInput(std::string& lexem, char& c);
+	void processInput(std::string& lexem, char& c);
 	HashTable* getHashTable();
 
 private:
 	std::fstream file;
+	HashTable* table;
+	std::vector<std::string>* errors;
 
+	NumNFA numNfa;
 	NFA nfa;
 	IdNFA idNfa;
-	NumNFA numNfa;
 	
 };
