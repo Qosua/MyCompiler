@@ -8,16 +8,18 @@ int main() {
     Lexer lexer("Program.txt");
     lexer.run();
 
-    HashTable table;
-    table.insert("text", LexemType::KeyWord);
-    table.insert("text", LexemType::KeyWord);
-    table.insert("text", LexemType::KeyWord);
-    table.insert("test", LexemType::KeyWord);
-    table.insert("asd", LexemType::KeyWord);
-    table.insert("sadsa", LexemType::KeyWord);
+    std::cout << "\n-----------------------------------------------------------------\n\n";
 
-    table << std::cout;
-    std::cout << "---";
+    *lexer.getHashTable() << std::cout;
+
+    std::cout << "\n-----------------------------------------------------------------\n\n";
+
+    for (auto elem : *lexer.getErrors()) {
+        std::cout << elem << "\n";
+    }
+    std::cout << "\n";
+
+
 
     return 0;
 

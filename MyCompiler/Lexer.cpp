@@ -65,13 +65,6 @@ void Lexer::run() {
 		file.get(c);
 	}
 
-	std::cout << "\n";
-	for (std::string& str : *errors) {
-
-		std::cout << str << "\n";
-
-	}
-
 }
 
 void Lexer::processInput(std::string& lexem, char& c) {
@@ -101,27 +94,30 @@ void Lexer::processInput(std::string& lexem, char& c) {
 
 		if (type != LexemType::Error) {
 
-			std::cout << "(" + lexem + " | ";
+			std::string temp;
+			temp += "(" + lexem + " | ";
 
 			switch (type)
 			{
-			case LexemType::Empty: std::cout << "ERROR)\n";
+			case LexemType::Empty: temp += "ERROR)\n";
 				break;
-			case LexemType::KeyWord: std::cout << "KeyWord)\n";
+			case LexemType::KeyWord: temp += "KeyWord)\n";
 				break;
-			case LexemType::ID: std::cout << "ID)\n";
+			case LexemType::ID: temp += "ID)\n";
 				break;
-			case LexemType::Separator: std::cout << "ERROR)\n";
+			case LexemType::Separator: temp += "ERROR)\n";
 				break;
-			case LexemType::Constant: std::cout << "Constant)\n";
+			case LexemType::Constant: temp += "Constant)\n";
 				break;
-			case LexemType::Operator: std::cout << "ERROR)\n";
+			case LexemType::Operator: temp += "ERROR)\n";
 				break;
-			case LexemType::Error: std::cout << "ERROR)\n";
+			case LexemType::Error: temp += "ERROR)\n";
 				break;
 			default:
 				break;
 			}
+			table->insert(lexem, type);
+			std::cout << temp;
 		}
 	}
 
@@ -137,30 +133,42 @@ void Lexer::processInput(std::string& lexem, char& c) {
 
 		if (type != LexemType::Error) {
 
-			std::cout << "(" + lexem + " | ";
+			std::string temp;
+			temp += "(" + lexem + " | ";
 
 			switch (type)
 			{
-			case LexemType::Empty: std::cout << "ERROR)\n";
+			case LexemType::Empty: temp += "ERROR)\n";
 				break;
-			case LexemType::KeyWord: std::cout << "ERROR)\n";
+			case LexemType::KeyWord: temp += "ERROR)\n";
 				break;
-			case LexemType::ID: std::cout << "ERROR)\n";
+			case LexemType::ID:temp += "ERROR)\n";
 				break;
-			case LexemType::Separator: std::cout << "Separator)\n";
+			case LexemType::Separator: temp += "Separator)\n";
 				break;
-			case LexemType::Constant: std::cout << "ERROR)\n";
+			case LexemType::Constant: temp += "ERROR)\n";
 				break;
-			case LexemType::Operator: std::cout << "Operator)\n";
+			case LexemType::Operator: temp += "Operator)\n";
 				break;
-			case LexemType::Error: std::cout << "ERROR)\n";
+			case LexemType::Error: temp += "ERROR)\n";
 				break;
 			default:
 				break;
 			}
+			table->insert(lexem, type);
+			std::cout << temp;
 		}
 	}
 
 	lexem.clear();
 	c = char();
+}
+
+HashTable* Lexer::getHashTable() {
+	return table;
+}
+
+std::vector<std::string>* Lexer::getErrors()
+{
+	return errors;
 }

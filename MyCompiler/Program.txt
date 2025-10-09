@@ -4,6 +4,8 @@ int main() {
 	fload;
 	1test1ErrorCatch;
 	asdasd%asd;
+	itof(23)
+	ftoi(2.2)
 	^;
 	a = 1;
 	b = 2;
@@ -13,5 +15,5 @@ int main() {
 	a = a + b;
 	c = c+d;
 
-	return 0;
+	return 012;
 }

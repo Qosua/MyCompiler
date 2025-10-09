@@ -17,6 +17,7 @@ public:
 	void run();
 	void processInput(std::string& lexem, char& c);
 	HashTable* getHashTable();
+	std::vector<std::string>* getErrors();
 
 private:
 	std::fstream file;
