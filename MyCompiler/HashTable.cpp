@@ -50,6 +50,10 @@ Token& HashTable::operator[](const std::string& lexem) {
 	return token;
 }
 
+MyVector<Token>& HashTable::operator[](const int& index) {
+	return (*arr)[index];
+}
+
 std::ostream& HashTable::operator<<(std::ostream& stream) {
 
 	for (int i = 0; i < (*arr).size(); ++i) {
@@ -83,4 +87,8 @@ int HashTable::hashFunction(const std::string& lexem) {
 		hashCode += lexem[i] * pow(prime_const, i);
 	}
 	return hashCode % (*arr).size();
+}
+
+size_t HashTable::size() {
+	return arr->size();
 }

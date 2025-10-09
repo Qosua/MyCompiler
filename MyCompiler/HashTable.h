@@ -45,9 +45,11 @@ public:
 	void erase(const std::string& lexem);
 
 	Token& operator[](const std::string& lexem);
+	MyVector<Token>& operator[](const int& index);
 	std::ostream& operator<<(std::ostream& stream);
 
 	int hashFunction(const std::string& lexem);
+	size_t size();
 
 private:
 	MyVector<MyVector<Token>>* arr;

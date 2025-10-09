@@ -168,7 +168,35 @@ HashTable* Lexer::getHashTable() {
 	return table;
 }
 
-std::vector<std::string>* Lexer::getErrors()
-{
+std::vector<std::string>* Lexer::getErrors() {
 	return errors;
+}
+
+void Lexer::printToFile(const std::string& filePath) {
+
+	std::fstream output;
+	output.open(filePath);
+
+	for (int i = 0; i < table->size(); ++i) {
+		for (int j = 0; j < (*table)[i].size(); ++j) {
+
+			std::string buffer;
+
+			buffer = "[" + std::to_string(i) + "," + std::to_string(j) + "] (";
+			buffer += (*table)[i][j].lexem + "|";
+
+			switch ((*table)[i][j].type) {
+				case LexemType::Empty: buffer += "EMPTY - ERROR)"; break;
+				case LexemType::KeyWord: buffer += "KeyWord)"; break;
+				case LexemType::ID: buffer += "ID)"; break;
+				case LexemType::Separator: buffer += "Separator)"; break;
+				case LexemType::Constant: buffer += "Constant)"; break;
+				case LexemType::Operator: buffer += "Operator)"; break;
+				case LexemType::Error: buffer += "ERROR)"; break;
+			}
+			buffer += "\n";
+			output << buffer;
+		}
+	}
+
 }

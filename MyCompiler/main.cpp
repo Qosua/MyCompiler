@@ -19,7 +19,7 @@ int main() {
     }
     std::cout << "\n";
 
-
+    lexer.printToFile("lexemes.txt");
 
     return 0;
 

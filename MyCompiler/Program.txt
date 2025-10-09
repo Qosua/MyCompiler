@@ -2,11 +2,16 @@ int main() {
 	int a,b;
 	float c,d;
 	fload;
-	1test1ErrorCatch;
+	testErrorCatch;
 	asdasd%asd;
 	itof(23)
 	ftoi(2.2)
 	^;
+	0.12
+	01.321
+	30.01
+	0.0123
+	1.0123
 	a = 1;
 	b = 2;
 	c = 3.0;
