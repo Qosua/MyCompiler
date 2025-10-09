@@ -18,11 +18,11 @@ public:
 
 		m_arr = new T[m_actualSize];
 
-		for (int i = 0; i < m_visibleSize; ++i)
+		for (int i = 0; i < elemCount; ++i)
 			m_arr[i] = elem;
 	}
 	~MyVector() {
-		delete m_arr;
+		delete[] m_arr;
 		m_arr = nullptr;
 	}
 
@@ -33,22 +33,28 @@ public:
 
 		m_actualSize = elemCount;
 
+
+		if (!m_arr) {
 		T* copyArr = new T[m_actualSize]();
 
-		for (int i = 0; i < m_visibleSize; ++i)
-			copyArr[i] = m_arr[i];
+			for (int i = 0; i < m_visibleSize; ++i)
+				copyArr[i] = m_arr[i];
 
-		if (m_arr)
-			delete m_arr;
+			if (m_arr)
+				delete[] m_arr;
 
-		m_arr = copyArr;
-		copyArr = nullptr;
+			m_arr = copyArr;
+			copyArr = nullptr;
+		}
+		else {
+			m_arr = new T[m_actualSize]();
+		}
 
 	}
 
 	void pushBack(const T& elem) {
 
-		if (m_visibleSize + 1 >= m_actualSize)
+		if (m_visibleSize + 1 > m_actualSize)
 			reserve(m_actualSize * 2);
 
 		m_arr[m_visibleSize] = elem;
@@ -78,7 +84,7 @@ public:
 
 		}
 
-		delete m_arr;
+		delete[] m_arr;
 		m_arr = copyArr;
 		copyArr = nullptr;
 
@@ -108,7 +114,7 @@ public:
 
 		}
 
-		delete m_arr;
+		delete[] m_arr;
 		m_arr = copyArr;
 		copyArr = nullptr;
 
@@ -123,6 +129,21 @@ public:
 	T& operator[](const size_t& elemPos) {
 		return m_arr[elemPos];
 	}
+	MyVector& operator=(const MyVector& copy) {
+		m_visibleSize = copy.m_visibleSize;
+		m_actualSize = copy.m_actualSize;
+
+		if (m_arr)
+			delete[] m_arr;
+
+		m_arr = new T[m_actualSize];
+
+		for (int i = 0; i < copy.m_visibleSize ; ++i) {
+			m_arr[i] = copy.m_arr[i];
+		}
+
+		return *this;
+	}
 
 	size_t size() const {
 		return m_visibleSize;
@@ -133,7 +154,7 @@ public:
 
 private:
 	T* m_arr;
-	size_t m_visibleSize;
-	size_t m_actualSize;
+	size_t m_visibleSize = 0;
+	size_t m_actualSize = 0;
 
 };
