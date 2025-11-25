@@ -25,12 +25,21 @@
     <ClCompile Include="NFA.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Source.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Syntax.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Program.txt">
       <Filter>input/output</Filter>
     </Text>
     <Text Include="lexemes.txt">
+      <Filter>input/output</Filter>
+    </Text>
+    <Text Include="AST.txt">
       <Filter>input/output</Filter>
     </Text>
   </ItemGroup>
@@ -45,6 +54,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="NFA.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Syntax.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

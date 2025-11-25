@@ -17,13 +17,15 @@ public:
 	void run();
 	void processInput(std::string& lexem, char& c);
 	HashTable* getHashTable();
-	std::vector<std::string>* getErrors();
+	std::vector<std::string> getErrors();
 	void printToFile(const std::string& filePath);
+	std::vector<Token> getTokens();
 
 private:
 	std::fstream file;
 	HashTable* table;
 	std::vector<std::string>* errors;
+	std::vector<Token> tokens;
 
 	NumNFA numNfa;
 	NFA nfa;
