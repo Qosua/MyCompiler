@@ -27,7 +27,7 @@ int main() {
     std::cout << "\n";
 
     lexer.printToFile("lexemes.txt");
-    //syntax.printToFile("AST.txt");
+    syntax.printToConsole();
 
     return 0;
 

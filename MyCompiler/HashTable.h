@@ -32,6 +32,7 @@ struct Token {
 
 	LexemType type = LexemType::Empty;
 	std::string lexem = "__error__";
+	int rowNumber = 0;
 
 };
 

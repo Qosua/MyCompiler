@@ -117,13 +117,21 @@ void Lexer::processInput(std::string& lexem, char& c) {
 				break;
 			}
 			table->insert(lexem, type);
-			tokens.push_back(Token(lexem, type));
+
+			Token token(lexem, type);
+			token.rowNumber = rowCount;
+
+			tokens.push_back(token);
 			std::cout << temp;
 		}
 	}
 
 	//Char processing
 	lexem = c;
+
+	if (lexem[0] == '\n')
+		rowCount += 1;
+
 	if (lexem[0] != '\n' and lexem[0] != '\t' and lexem[0] != '\0' and lexem[0] != ' ') {
 
 		LexemType type = nfa.detectLexem(lexem);
@@ -157,7 +165,11 @@ void Lexer::processInput(std::string& lexem, char& c) {
 				break;
 			}
 			table->insert(lexem, type);
-			tokens.push_back(Token(lexem, type));
+
+			Token token(lexem, type);
+			token.rowNumber = rowCount;
+
+			tokens.push_back(token);
 			std::cout << temp;
 		}
 	}

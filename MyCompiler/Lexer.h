@@ -26,6 +26,7 @@ private:
 	HashTable* table;
 	std::vector<std::string>* errors;
 	std::vector<Token> tokens;
+	int rowCount = 1;
 
 	NumNFA numNfa;
 	NFA nfa;

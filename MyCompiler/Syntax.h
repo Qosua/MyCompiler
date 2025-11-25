@@ -5,38 +5,30 @@
 #include <vector>
 #include <string>
 
-struct ASTNode {
-
-    std::string Name;
-    std::vector<ASTNode*> children;
-
-};
-
 class AST {
 
 public:
-    AST();
-
-private:
+    AST() {};
 
     struct SimpleExpr;
     struct Expr;
     
     struct Expr {
         int sign = 0; // 0 - nothing, 1 - plus, 2 - minus
-        SimpleExpr* simpleExpr;
-        Expr* expr = nullptr;
+        SimpleExpr* expr1 = nullptr;
+        SimpleExpr* expr2 = nullptr;
     };
 
     struct SimpleExpr {
         int state; // -2 - var, -1 - constant, 
                    // 0 - scobes, 1 - itof, 2 - ftoi
         std::string varName;
-        std::string Constant;
-        Expr* expr;
+        std::string constant;
+        Expr* expr = nullptr;
     };
 
     std::string BeginName;
+    std::string beginType;
     std::vector<std::string> intVars;
     std::vector<std::string> floatVars;
     std::vector<
@@ -46,6 +38,11 @@ private:
         >
     > operations;
     std::string endVariable;
+
+    void printToConsole();
+    void printExpr(AST::Expr* expr, int level = 0);
+    void printSimpleExpr(AST::SimpleExpr* expr, int level = 0);
+    void put(int level);
 
 };
 
@@ -60,13 +57,16 @@ public:
     void setTokens(std::vector<Token> tokens);
     std::vector<std::string> getErrors();
     void printToFile(std::string filePath);
+    void printToConsole();
 
 private:
     std::vector<Token> tokens;
     std::vector<std::string> errors;
     size_t position = 0;
     Token currentToken;
-    ASTNode* tree;
+    AST tree;
+    std::string lastVarType;
+    std::string lastVarName;
 
     bool match(LexemType type, std::string val = "", bool toMoveIfFalse = true);
     void error(std::string errorText);
@@ -78,10 +78,10 @@ private:
     void parseOperators();
     void parseDescr();
     void parseVarList();
-    void parseType();
+    bool parseType();
     void parseOp();
-    void parseExpr();
-    void parseSimpleExpr();
+    void parseExpr(AST::Expr* parent = nullptr);
+    void parseSimpleExpr(AST::SimpleExpr* parent = nullptr);
 
     bool isTypeAhead();
     bool isIDAhead();

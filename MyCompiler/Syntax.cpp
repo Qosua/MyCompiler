@@ -25,6 +25,10 @@ void Syntax::printToFile(std::string filePath) {
 
 }
 
+void Syntax::printToConsole() {
+    tree.printToConsole();
+}
+
 bool Syntax::match(LexemType type, std::string val, bool toMoveIfFalse) {
     if (currentToken.type == type and (val == "" or currentToken.lexem == val)) {
 
@@ -41,32 +45,25 @@ bool Syntax::match(LexemType type, std::string val, bool toMoveIfFalse) {
     return false;
 }
 
-void Syntax::parseType() {
+bool Syntax::parseType() {
 
-    tree->children.push_back(new ASTNode);
-    tree = tree->children.back();
-
-    if (match(LexemType::KeyWord, "int", false)) {
-        tree->Name = "Type: int";
-        return;
-    }
-    if (match(LexemType::KeyWord, "float", false)) {
-        tree->Name = "Type: float";
-        return;
-    }
+    if (match(LexemType::KeyWord, "int", false))
+        return true;
+    
+    if (match(LexemType::KeyWord, "float", false))
+        return true;
+    
     error("Expected type. Int or float");
+    return false;
 }
 
 void Syntax::error(std::string errorText) {
 
-    errors.push_back("Syntax error: \n\t" + errorText + "\n");
+    errors.push_back("Syntax error - row:" + std::to_string(tokens[position].rowNumber) + " \n\t" + errorText + "\n");
 
 }
 
 void Syntax::parseFunction() {
-
-    tree = new ASTNode;
-    tree->Name = "Function";
 
     parseBegin(); // +
     parseDescriptions(); // +
@@ -76,15 +73,13 @@ void Syntax::parseFunction() {
 
 void Syntax::parseBegin() {
 
-    parseType();
+    if (parseType()) 
+        tree.beginType = tokens[position - 1].lexem;
 
     if (!match(LexemType::ID)) 
         error("Expected function name");
     else {
-
-        tree->children.push_back(new ASTNode);
-        tree = tree->children.back();
-        tree->Name = "Begin";
+        tree.BeginName = tokens[position - 1].lexem;
     }
     
     if (!match(LexemType::Separator, "(")) 
@@ -98,48 +93,35 @@ void Syntax::parseBegin() {
 void Syntax::parseEnd() {
 
     if (!match(LexemType::KeyWord, "return")) error("Expected return key word");
-    if (!match(LexemType::ID)) error("Expected some ID at the end");
+    
+    if (!match(LexemType::ID))
+        error("Expected some ID at the end");
+    else
+        tree.endVariable = tokens[position - 1].lexem;
+
     if (!match(LexemType::Separator, ";")) error("Expected ';'");
     if (!match(LexemType::Separator, "}")) error("Expected '}'");
 }
 
 void Syntax::parseDescriptions() {
 
-    tree->children.push_back(new ASTNode);
-    tree = tree->children.back();
-    tree->Name = "Descriptions";
-
-    while (isTypeAhead()) { 
+    while (isTypeAhead())
         parseDescr();
-    }
+    
 }
 
 void Syntax::parseOperators() {
-    while (isIDAhead()) {
+
+    while (isIDAhead())
         parseOp();
-    }
-}
-
-void Syntax::parseOp() {
-    if (!match(LexemType::ID)) 
-        error("Expected ID in operator");
-
-    if (!match(LexemType::Operator, "=")) 
-        error("Expected '='");
-
-    parseExpr();
-
-    if (!match(LexemType::Separator, ";")) 
-        error("Expected ';'");
+    
 }
 
 void Syntax::parseDescr() {
 
-    tree->children.push_back(new ASTNode);
-    tree = tree->children.back();
-    tree->Name = "Descr";
-
-    parseType();
+    if (parseType())
+        lastVarType = tokens[position - 1].lexem;
+    
     parseVarList();
 
     if (!match(LexemType::Separator, ";")) 
@@ -148,41 +130,78 @@ void Syntax::parseDescr() {
 
 void Syntax::parseVarList() {
 
-    tree->children.push_back(new ASTNode);
-    tree = tree->children.back();
-    tree->Name = "VarList";
+    if (!match(LexemType::ID)) 
+        error("Expected some ID");
+    else {
 
-    if (!match(LexemType::ID)) error("Expected some ID");
+        if (lastVarType == "int")
+            tree.intVars.push_back(tokens[position - 1].lexem);
+        if (lastVarType == "float")
+            tree.floatVars.push_back(tokens[position - 1].lexem);
+
+    }
 
     if (currentToken.lexem == ";")
         return;
 
-    if (match(LexemType::Separator, ",")) {
+    if (match(LexemType::Separator, ",", false)) {
         parseVarList();
     }
 }
 
-void Syntax::parseExpr() {
+void Syntax::parseOp() {
 
-    parseSimpleExpr();
+    if (!match(LexemType::ID))
+        error("Expected ID in operator");
+    else {
+        tree.operations.emplace_back();
+        tree.operations.back().first = tokens[position - 1].lexem;
+    }
+
+    if (!match(LexemType::Operator, "="))
+        error("Expected '='");
+
+    parseExpr(&tree.operations.back().second);
+
+    if (!match(LexemType::Separator, ";"))
+        error("Expected ';'");
+}
+
+void Syntax::parseExpr(AST::Expr* parent) {
+
+    AST::SimpleExpr* simpleExpr1 = new AST::SimpleExpr;
+    parent->expr1 = simpleExpr1;
+    parseSimpleExpr(simpleExpr1);
 
     while (match(LexemType::Operator, "+", false) or match(LexemType::Operator, "-", false)) {
-        parseSimpleExpr();
+
+        parent->sign = (tokens[position - 1].lexem == "+" ? 1 : 2);
+        AST::SimpleExpr* simpleExpr2 = new AST::SimpleExpr;
+        parent->expr2 = simpleExpr2;
+        parseSimpleExpr(simpleExpr2);
     }
     
 }
 
-void Syntax::parseSimpleExpr() {
+void Syntax::parseSimpleExpr(AST::SimpleExpr* parent) {
 
-    if (match(LexemType::ID, "", false))
+    if (match(LexemType::ID, "", false)) {
+        parent->state = -2;
+        parent->varName = tokens[position - 1].lexem;
         return;
+    }
 
-    if (match(LexemType::Constant, "", false))
+    if (match(LexemType::Constant, "", false)) {
+        parent->state = -1;
+        parent->constant = tokens[position - 1].lexem;
         return;
+    }
 
     if (match(LexemType::Separator, "(", false)) {
 
-        parseExpr();
+        parent->expr = new AST::Expr;
+        parent->state = 0;
+        parseExpr(parent->expr);
 
         if (!match(LexemType::Separator, ")", false))
             error("Expected ')'");
@@ -194,7 +213,9 @@ void Syntax::parseSimpleExpr() {
         if (!match(LexemType::Separator, "("))
             error("Expected '('");
 
-        parseExpr();
+        parent->expr = new AST::Expr;
+        parent->state = 1;
+        parseExpr(parent->expr);
 
         if (!match(LexemType::Separator, ")"))
             error("Expected ')'");
@@ -206,7 +227,9 @@ void Syntax::parseSimpleExpr() {
         if (!match(LexemType::Separator, "("))
             error("Expected '('");
 
-        parseExpr();
+        parent->expr = new AST::Expr;
+        parent->state = 2;
+        parseExpr(parent->expr);
 
         if (!match(LexemType::Separator, ")"))
             error("Expected ')'");
@@ -233,4 +256,102 @@ bool Syntax::isIDAhead() {
             return true;
 
     return false;
+}
+
+void AST::printToConsole() {
+
+    std::cout << "FUNCTION:\n";
+
+    std::cout << "\tBEGIN:\n";
+    std::cout << "\t\tFUNC TYPE: " << beginType << "\n";
+    std::cout << "\t\tFUNC NAME: " << BeginName << "\n";
+
+    std::cout << "\tDESCRIPTION:\n";
+    std::cout << "\t\tINT VARS: ";
+    for (auto elem : intVars)
+        std::cout << elem << ", ";
+    std::cout << ";\n";
+    std::cout << "\t\tFLOAT VARS:";
+    for (auto elem : floatVars)
+        std::cout << elem << ", ";
+    std::cout << ";\n";
+    
+    std::cout << "\tOPERATORS:\n";
+    for (auto elem : operations) {
+        std::cout << "\t\tOP:\n";
+        std::cout << "\t\t\tGOAL VAR: " << elem.first << "\n";
+        printExpr(&elem.second, 2);
+    }
+
+    std::cout << "\tEND:\n";
+    std::cout << "\t\tPROGRAM END VAR: " << endVariable << "\n\n";
+
+
+
+}
+
+void AST::printExpr(AST::Expr* expr, int level) {
+
+    if (!expr)
+        return;
+
+    put(level);
+    std::cout << "EXPR:\n";
+
+    put(level);
+    std::cout << "\tSIGN: ";
+    switch (expr->sign) {
+    case 0: {
+        std::cout << "no sign\n"; 
+    } break;
+    case 1: {
+        std::cout << "+\n"; 
+    } break;
+    case 2: { 
+        std::cout << "-\n"; 
+    } break;
+    }
+    printSimpleExpr(expr->expr1, level + 1);
+    printSimpleExpr(expr->expr2, level + 1);
+}
+
+void AST::printSimpleExpr(AST::SimpleExpr* expr, int level) {
+
+    if (!expr)
+        return;
+
+    put(level);
+    std::cout << "SIMPLE EXPR:\n";
+
+    switch (expr->state) {
+    case -2: {
+
+        put(level);
+        std::cout << "\tVAR: " << expr->varName << "\n";
+    } break;
+    case -1: {
+        put(level);
+        std::cout << "\tCONSTANT: " << expr->constant << "\n";
+    } break;
+    case 0: {
+        put(level);
+        std::cout << "\tSCOBES - (EXPR): \n";
+        printExpr(expr->expr, level + 1);
+    } break;
+    case 1: {
+        put(level);
+        std::cout << "\tITOF - (EXPR): \n";
+        printExpr(expr->expr, level + 1);
+    } break;
+    case 2: {
+        put(level);
+        std::cout << "\tFTOI - (EXPR): \n";
+        printExpr(expr->expr, level + 1);
+    } break;
+    }
+}
+
+void AST::put(int level) {
+    for (int i = 0; i < level; ++i)
+        std::cout << '\t';
 }
