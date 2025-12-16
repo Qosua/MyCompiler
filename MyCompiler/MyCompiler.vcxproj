@@ -132,12 +132,13 @@
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NFA.cpp" />
-    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Semantics.cpp" />
     <ClCompile Include="Syntax.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="AST.txt" />
     <Text Include="lexemes.txt" />
+    <Text Include="MainOutput.txt" />
     <Text Include="Program.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -145,6 +146,7 @@
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="MyVector.h" />
     <ClInclude Include="NFA.h" />
+    <ClInclude Include="Semantics.h" />
     <ClInclude Include="Syntax.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

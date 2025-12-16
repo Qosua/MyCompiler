@@ -1,6 +1,7 @@
 int main() {
 	int a,b;
 	float c, d;
-	c = c - (1 + 2);
-	return c;
+	c = c - itof(a + c);
+	c = 1.0;
+	return a;
 }

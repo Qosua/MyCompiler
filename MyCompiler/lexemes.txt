@@ -5,7 +5,6 @@
 [44,0] (,|Separator)
 [45,0] (-|Operator)
 [49,0] (1|Constant)
-[50,0] (2|Constant)
 [59,0] (;|Separator)
 [61,0] (=|Operator)
 [97,0] (a|ID)
@@ -15,11 +14,11 @@
 [123,0] ({|Separator)
 [125,0] (}|Separator)
 [168,0] (return|KeyWord)
+[204,0] (ftoi|KeyWord)
 [235,0] (main|ID)
+[332,0] (2.0|Constant)
 [400,0] (float|KeyWord)
 
-
-[400,0] (float|KeyWord)
 [168,0] (return|KeyWord)
 [204,0] (ftoi|KeyWord)
 [208,0] (0.0123|Constant)

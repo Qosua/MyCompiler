@@ -24,6 +24,7 @@ public:
                    // 0 - scobes, 1 - itof, 2 - ftoi
         std::string varName;
         std::string constant;
+        std::string type;
         Expr* expr = nullptr;
     };
 
@@ -43,6 +44,8 @@ public:
     void printExpr(AST::Expr* expr, int level = 0);
     void printSimpleExpr(AST::SimpleExpr* expr, int level = 0);
     void put(int level);
+    std::string findVarType(std::string name);
+    std::string findConstType(std::string name);
 
 };
 
@@ -58,6 +61,7 @@ public:
     std::vector<std::string> getErrors();
     void printToFile(std::string filePath);
     void printToConsole();
+    AST getTree();
 
 private:
     std::vector<Token> tokens;

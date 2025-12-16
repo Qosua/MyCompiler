@@ -29,6 +29,11 @@ void Syntax::printToConsole() {
     tree.printToConsole();
 }
 
+AST Syntax::getTree()
+{
+    return tree;
+}
+
 bool Syntax::match(LexemType type, std::string val, bool toMoveIfFalse) {
     if (currentToken.type == type and (val == "" or currentToken.lexem == val)) {
 
@@ -53,7 +58,7 @@ bool Syntax::parseType() {
     if (match(LexemType::KeyWord, "float", false))
         return true;
     
-    error("Expected type. Int or float");
+    error("Expected type. int or float");
     return false;
 }
 
@@ -188,12 +193,14 @@ void Syntax::parseSimpleExpr(AST::SimpleExpr* parent) {
     if (match(LexemType::ID, "", false)) {
         parent->state = -2;
         parent->varName = tokens[position - 1].lexem;
+        parent->type = tree.findVarType(parent->varName);
         return;
     }
 
     if (match(LexemType::Constant, "", false)) {
         parent->state = -1;
         parent->constant = tokens[position - 1].lexem;
+        parent->type = tree.findConstType(parent->constant);
         return;
     }
 
@@ -328,10 +335,14 @@ void AST::printSimpleExpr(AST::SimpleExpr* expr, int level) {
 
         put(level);
         std::cout << "\tVAR: " << expr->varName << "\n";
+        put(level);
+        std::cout << "\tTYPE: " << expr->type << "\n";
     } break;
     case -1: {
         put(level);
         std::cout << "\tCONSTANT: " << expr->constant << "\n";
+        put(level);
+        std::cout << "\tTYPE: " << expr->type << "\n";
     } break;
     case 0: {
         put(level);
@@ -354,4 +365,21 @@ void AST::printSimpleExpr(AST::SimpleExpr* expr, int level) {
 void AST::put(int level) {
     for (int i = 0; i < level; ++i)
         std::cout << '\t';
+}
+
+std::string AST::findVarType(std::string name) {
+
+    if (std::find(intVars.begin(), intVars.end(), name) != intVars.end())
+        return "int";
+
+    if (std::find(floatVars.begin(), floatVars.end(), name) != floatVars.end())
+        return "float";
+
+    return "TYPE ERROR";
+}
+
+std::string AST::findConstType(std::string name) {
+
+    return (std::find(name.begin(), name.end(), '.') != name.end() ? "float" : "int");
+
 }
