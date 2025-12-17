@@ -21,7 +21,10 @@ void Semantics::run() {
 
 void Semantics::printToFile(std::string str) {
 
-	
+	std::fstream stream;
+	stream.open(str, std::ios_base::out);
+
+	stream << prefix;
 
 }
 
@@ -45,7 +48,6 @@ bool Semantics::checkMultipleVarInit() {
 	bool ans = true;
 
 	for (auto& elem : variables)
-
 		if (elem.second.size() > 1) {
 			errors.push_back("Semantics error: multiple initialization of the variable - " + elem.first);
 
@@ -114,7 +116,7 @@ void Semantics::madePrefixString() {
 
 	std::string result;
 
-	result += tree.BeginName + " CALL\n";
+	result += tree.beginType + " " + tree.BeginName + " 2 CALL\n";
 
 	result += "int";
 	for (int i = 0; i < tree.intVars.size(); ++i) {
@@ -132,11 +134,98 @@ void Semantics::madePrefixString() {
 	}
 	result += std::string(" ") + std::to_string(tree.intVars.size()) + " DECL\n";
 
+	result += writeExpresions();
 
-
+	result += "return " + tree.endVariable + " 2 CALL\n";
 
 	prefix = result;
 
+}
+
+std::string Semantics::writeExpresions() {
+
+	std::string result;
+	currentStack = new std::stack<std::string>;
+
+	for (auto& operation : tree.operations) {
+
+		currentStack->push("=");
+
+		result += operation.first;
+		result += writeExpr(&operation.second);
+
+		while (currentStack->size() > 0) {
+			result += " " + currentStack->top();
+			currentStack->pop();
+		}
+
+
+		result += " \n";
+
+	}
+
+	return result;
+}
+
+std::string Semantics::writeExpr(AST::Expr* expr) {
+
+	std::string result;
+
+	if (expr->sign == 0) {
+
+		result = writeSimpleExpr(expr->expr1);
+
+	}
+	else {
+
+		if(expr->sign == 1)
+			currentStack->push("+");
+		else
+			currentStack->push("-");
+
+		result = writeSimpleExpr(expr->expr1);
+		result += writeSimpleExpr(expr->expr2);
+
+	}
+
+	return result;
+}
+
+std::string Semantics::writeSimpleExpr(AST::SimpleExpr* simpleExpr) {
+
+	// struct SimpleExpr 
+	// -2 - var, -1 - constant, 
+	// 0 - scobes, 1 - itof, 2 - ftoi
+
+	std::string result;
+
+	if (simpleExpr->state == -2) {
+
+		result = " " + simpleExpr->varName;
+
+	}
+	if (simpleExpr->state == -1) {
+
+		result = " " + simpleExpr->constant;
+
+	}
+	if (simpleExpr->state == 0) {
+
+		result = writeExpr(simpleExpr->expr);
+
+	}
+	if (simpleExpr->state == 1 or simpleExpr->state == 2) {
+
+		if (simpleExpr->state == 1)
+			currentStack->push("itof");
+		else
+			currentStack->push("ftoi");
+
+		result = writeExpr(simpleExpr->expr);
+
+	}
+
+	return result;
 }
 
 bool Semantics::checkOperation(std::string varName, AST::Expr* expr) {
@@ -192,7 +281,22 @@ std::string Semantics::checkSimpleExpr(AST::SimpleExpr* simpleExpr) {
 
 	std::string type;
 
-	if (simpleExpr->state == -1 or simpleExpr->state == -2) {
+	if (simpleExpr->state == -2) {
+
+		if (std::find(tree.intVars.begin(), tree.intVars.end(), simpleExpr->varName) == tree.intVars.end()) {
+			if (std::find(tree.floatVars.begin(), tree.floatVars.end(), simpleExpr->varName) == tree.floatVars.end()) {
+				
+				type = "TYPE ERROR";
+				errors.push_back("Semantics error: variable - " + simpleExpr->varName + " was not declared");
+			}
+			else
+				type = simpleExpr->type;
+		}
+		else
+			type = simpleExpr->type;
+
+	}
+	if (simpleExpr->state == -1) {
 
 		type = simpleExpr->type;
 

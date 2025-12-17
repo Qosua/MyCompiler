@@ -97,7 +97,8 @@ void Syntax::parseBegin() {
 
 void Syntax::parseEnd() {
 
-    if (!match(LexemType::KeyWord, "return")) error("Expected return key word");
+    if (!match(LexemType::KeyWord, "return")) 
+        error("Expected return key word");
     
     if (!match(LexemType::ID))
         error("Expected some ID at the end");

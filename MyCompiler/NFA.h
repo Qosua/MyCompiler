@@ -9,6 +9,7 @@
 struct Node {
 	int nodeNumber;
 	LexemType lexemToDetectOnNode;
+	bool isFinishNode = false;
 };
 
 //It is General NFA for any finite words set

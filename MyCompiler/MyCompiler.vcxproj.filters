@@ -39,10 +39,10 @@
     <Text Include="AST.txt">
       <Filter>input/output</Filter>
     </Text>
-    <Text Include="MainOutput.txt">
+    <Text Include="Program.txt">
       <Filter>input/output</Filter>
     </Text>
-    <Text Include="Program.txt">
+    <Text Include="MainOutput.txt">
       <Filter>input/output</Filter>
     </Text>
   </ItemGroup>

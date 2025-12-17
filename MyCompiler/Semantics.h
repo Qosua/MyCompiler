@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <fstream>
+#include <stack>
 
 #include "Syntax.h"
 
@@ -20,6 +22,9 @@ private:
 	bool checkTypesInTheExpresions();
 
 	void madePrefixString();
+	std::string writeExpresions();
+	std::string writeExpr(AST::Expr* expr);
+	std::string writeSimpleExpr(AST::SimpleExpr* simpleExpr);
 
 	bool checkOperation(std::string varName, AST::Expr* expr);
 	std::string checkExpr(AST::Expr* expr);
@@ -30,6 +35,7 @@ private:
 	AST tree;
 	std::string prefix;
 	std::vector<std::string> errors;
+	std::stack<std::string>* currentStack;
 
 };
 

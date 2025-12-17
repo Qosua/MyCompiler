@@ -10,16 +10,20 @@ void NFA::addLexem(const std::string& lexem, const LexemType& lexemType) {
 
 	int current = 0;
 
-	for (char c : lexem) {
+	for (int i = 0; i < lexem.size();++i) {
 
-		if (transitionsTable[current].find(c) == transitionsTable[current].end()) {
+		if (transitionsTable[current].find(lexem[i]) == transitionsTable[current].end()) {
+
 			Node node;
 			node.nodeNumber = newTransiotion();
 			node.lexemToDetectOnNode = lexemType;
 
-			transitionsTable[current][c] = node;
+			if (i == lexem.size() - 1)
+				node.isFinishNode = true;
+
+			transitionsTable[current][lexem[i]] = node;
 		}
-		current = transitionsTable[current][c].nodeNumber;
+		current = transitionsTable[current][lexem[i]].nodeNumber;
 	}
 
 	return;
@@ -28,6 +32,7 @@ void NFA::addLexem(const std::string& lexem, const LexemType& lexemType) {
 LexemType NFA::detectLexem(const std::string& lexem) {
 
 	int current = 0;
+	bool nodeState = true;
 	LexemType ans = LexemType::Error;
 
 	for (char c : lexem) {
@@ -35,11 +40,15 @@ LexemType NFA::detectLexem(const std::string& lexem) {
 		if (transitionsTable[current].find(c) == transitionsTable[current].end())
 			return LexemType::Error;
 
+		nodeState = transitionsTable[current][c].isFinishNode;
 		ans = transitionsTable[current][c].lexemToDetectOnNode;
 		current = transitionsTable[current][c].nodeNumber;
 	}
 
-	return ans;
+	if(nodeState)
+		return ans;
+	else
+		return LexemType::Error;
 }
 
 int NFA::newTransiotion() {
@@ -54,6 +63,7 @@ IdNFA::IdNFA() {
 	Node node;
 	node.nodeNumber = 0;
 	node.lexemToDetectOnNode = LexemType::ID;
+	node.isFinishNode = true;
 
 	for (int i = 65; i <= 90; ++i) 
 		transitionsTable[0][char(i)] = node;
@@ -74,6 +84,7 @@ NumNFA::NumNFA() {
 	Node node;
 	node.nodeNumber = 1;
 	node.lexemToDetectOnNode = LexemType::Constant;
+	node.isFinishNode = true;
 
 	transitionsTable[0]['0'] = node;
 
