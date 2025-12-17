@@ -112,7 +112,30 @@ bool Semantics::checkTypesInTheExpresions() {
 
 void Semantics::madePrefixString() {
 
+	std::string result;
 
+	result += tree.BeginName + " CALL\n";
+
+	result += "int";
+	for (int i = 0; i < tree.intVars.size(); ++i) {
+
+		result += " " + tree.intVars[i];
+
+	}
+	result += std::string(" ") + std::to_string(tree.intVars.size()) + " DECL\n";
+
+	result += "float";
+	for (int i = 0; i < tree.floatVars.size(); ++i) {
+
+		result += " " + tree.floatVars[i];
+
+	}
+	result += std::string(" ") + std::to_string(tree.intVars.size()) + " DECL\n";
+
+
+
+
+	prefix = result;
 
 }
 

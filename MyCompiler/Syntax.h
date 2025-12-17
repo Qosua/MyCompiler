@@ -3,6 +3,7 @@
 #include "HashTable.h"
 
 #include <vector>
+#include <iostream>
 #include <string>
 
 class AST {
@@ -14,7 +15,7 @@ public:
     struct Expr;
     
     struct Expr {
-        int sign = 0; // 0 - nothing, 1 - plus, 2 - minus
+        int sign = 0; // 0 - only expr1, 1 - plus, 2 - minus
         SimpleExpr* expr1 = nullptr;
         SimpleExpr* expr2 = nullptr;
     };

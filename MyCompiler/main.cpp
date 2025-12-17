@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <windows.h>
+
 #include "Lexer.h"
 #include "Syntax.h"
 #include "Semantics.h"

@@ -28,6 +28,7 @@ private:
 	std::string getVarType(std::string name);
 
 	AST tree;
+	std::string prefix;
 	std::vector<std::string> errors;
 
 };
