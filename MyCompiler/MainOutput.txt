@@ -1,5 +1,0 @@
-int main 2 CALL
-int a b 2 DECL
-float c d i 2 DECL
-c c d - = 
-return a 2 CALL

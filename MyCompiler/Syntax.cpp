@@ -179,12 +179,13 @@ void Syntax::parseExpr(AST::Expr* parent) {
     parent->expr1 = simpleExpr1;
     parseSimpleExpr(simpleExpr1);
 
-    while (match(LexemType::Operator, "+", false) or match(LexemType::Operator, "-", false)) {
+    while (match(LexemType::Operator, "+", false) or 
+           match(LexemType::Operator, "-", false)) {
 
         parent->sign = (tokens[position - 1].lexem == "+" ? 1 : 2);
-        AST::SimpleExpr* simpleExpr2 = new AST::SimpleExpr;
-        parent->expr2 = simpleExpr2;
-        parseSimpleExpr(simpleExpr2);
+        AST::Expr* expr = new AST::Expr;
+        parent->expr2 = expr;
+        parseExpr(expr);
     }
     
 }
@@ -320,7 +321,7 @@ void AST::printExpr(AST::Expr* expr, int level) {
     } break;
     }
     printSimpleExpr(expr->expr1, level + 1);
-    printSimpleExpr(expr->expr2, level + 1);
+    printExpr(expr->expr2, level + 1);
 }
 
 void AST::printSimpleExpr(AST::SimpleExpr* expr, int level) {

@@ -145,18 +145,18 @@ void Semantics::madePrefixString() {
 std::string Semantics::writeExpresions() {
 
 	std::string result;
-	currentStack = new std::stack<std::string>;
+	std::stack<std::string> st;
 
 	for (auto& operation : tree.operations) {
 
-		currentStack->push("=");
+		st.push("=");
 
 		result += operation.first;
-		result += writeExpr(&operation.second);
+		result += writeExpr(&operation.second, st);
 
-		while (currentStack->size() > 0) {
-			result += " " + currentStack->top();
-			currentStack->pop();
+		while (st.size() > 0) {
+			result += " " + st.top();
+			st.pop();
 		}
 
 
@@ -167,31 +167,62 @@ std::string Semantics::writeExpresions() {
 	return result;
 }
 
-std::string Semantics::writeExpr(AST::Expr* expr) {
+std::string Semantics::writeExpr(AST::Expr* expr, std::stack<std::string>& st) {
 
 	std::string result;
 
 	if (expr->sign == 0) {
 
-		result = writeSimpleExpr(expr->expr1);
+		result = writeSimpleExpr(expr->expr1, st);
 
 	}
 	else {
 
 		if(expr->sign == 1)
-			currentStack->push("+");
+			st.push("+");
 		else
-			currentStack->push("-");
+			st.push("-");
 
-		result = writeSimpleExpr(expr->expr1);
-		result += writeSimpleExpr(expr->expr2);
+		result = writeSimpleExpr(expr->expr1, st);
+		result += writeExpr(expr->expr2, st);
 
 	}
 
 	return result;
 }
 
-std::string Semantics::writeSimpleExpr(AST::SimpleExpr* simpleExpr) {
+std::string Semantics::writeExprIF(AST::Expr* expr, std::stack<std::string>& st) {
+
+	std::string result;
+
+	if (expr->sign == 0) {
+
+		result = writeSimpleExpr(expr->expr1, st);
+
+	}
+	else {
+
+		std::stack<std::string> anotherStack;
+
+		result += writeSimpleExpr(expr->expr1, anotherStack);
+		result += writeExpr(expr->expr2, anotherStack);
+
+		if (expr->sign == 1)
+			anotherStack.push("+");
+		else
+			anotherStack.push("-");
+
+		while (anotherStack.size() > 0) {
+			result += " " + anotherStack.top();
+			anotherStack.pop();
+		}
+
+	}
+
+	return result;
+}
+
+std::string Semantics::writeSimpleExpr(AST::SimpleExpr* simpleExpr, std::stack<std::string>& st) {
 
 	// struct SimpleExpr 
 	// -2 - var, -1 - constant, 
@@ -211,17 +242,19 @@ std::string Semantics::writeSimpleExpr(AST::SimpleExpr* simpleExpr) {
 	}
 	if (simpleExpr->state == 0) {
 
-		result = writeExpr(simpleExpr->expr);
+		result = writeExpr(simpleExpr->expr, st);
 
 	}
 	if (simpleExpr->state == 1 or simpleExpr->state == 2) {
 
-		if (simpleExpr->state == 1)
-			currentStack->push("itof");
-		else
-			currentStack->push("ftoi");
+		std::stack<std::string> st;
 
-		result = writeExpr(simpleExpr->expr);
+		result += writeExprIF(simpleExpr->expr, st);
+
+		if (simpleExpr->state == 1)
+			result += (" itof 2 CALL");
+		else
+			result += (" ftoi 2 CALL");
 
 	}
 
@@ -235,9 +268,8 @@ bool Semantics::checkOperation(std::string varName, AST::Expr* expr) {
 
 	if ((varType != exprType) or (exprType == "TYPE ERROR")) {
 
-		errors.push_back("Semantics error: expresion types do not match");
+		errors.push_back("Semantics error: expresion types do not match or variable does not exist");
 		return false;
-
 	}
 
 	return true;
@@ -258,7 +290,7 @@ std::string Semantics::checkExpr(AST::Expr* expr) {
 	else {
 
 		std::string tempType1 = checkSimpleExpr(expr->expr1);
-		std::string tempType2 = checkSimpleExpr(expr->expr2);
+		std::string tempType2 = checkExpr(expr->expr2);
 
 		if ((tempType1 == tempType2) and 
 			(tempType1 != "TYPE ERROR") and 
@@ -337,6 +369,8 @@ std::string Semantics::getVarType(std::string name) {
 	if (std::find(tree.intVars.begin(), tree.intVars.end(), name) != tree.intVars.end())
 		return "int";
 
-	return "float";
+	if (std::find(tree.floatVars.begin(), tree.floatVars.end(), name) != tree.floatVars.end())
+		return "float";
 
+	return "TYPE ERROR";
 }

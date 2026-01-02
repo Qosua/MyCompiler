@@ -23,8 +23,9 @@ private:
 
 	void madePrefixString();
 	std::string writeExpresions();
-	std::string writeExpr(AST::Expr* expr);
-	std::string writeSimpleExpr(AST::SimpleExpr* simpleExpr);
+	std::string writeExpr(AST::Expr* expr, std::stack<std::string>& st);
+	std::string writeExprIF(AST::Expr* expr, std::stack<std::string>& st);
+	std::string writeSimpleExpr(AST::SimpleExpr* simpleExpr, std::stack<std::string>& st);
 
 	bool checkOperation(std::string varName, AST::Expr* expr);
 	std::string checkExpr(AST::Expr* expr);
@@ -35,7 +36,6 @@ private:
 	AST tree;
 	std::string prefix;
 	std::vector<std::string> errors;
-	std::stack<std::string>* currentStack;
 
 };
 

@@ -17,7 +17,7 @@ public:
     struct Expr {
         int sign = 0; // 0 - only expr1, 1 - plus, 2 - minus
         SimpleExpr* expr1 = nullptr;
-        SimpleExpr* expr2 = nullptr;
+        Expr* expr2 = nullptr;
     };
 
     struct SimpleExpr {

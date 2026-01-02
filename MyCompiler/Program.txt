@@ -1,9 +1,10 @@
-int main() {
+float main() {
 
-	int a, b;
-	float c, d, i;
+	int a, b, c, d;
+	float f;
+	a = ftoi(3.1);
+	f = 4.1;
+	g = f - itof(a) + itof(c - d);
 
-	c = c - d;
-
-	return a;
+	return f;
 }
