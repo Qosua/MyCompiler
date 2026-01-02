@@ -17,7 +17,7 @@ int main() {
 
     syntax.setTokens(lexer.getTokens());
     syntax.run();
-    syntax.printToConsole();
+    syntax.printToFile();
 
     semantics.setTree(syntax.getTree());
     semantics.run();

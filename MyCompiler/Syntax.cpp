@@ -21,7 +21,10 @@ std::vector<std::string> Syntax::getErrors() {
     return errors;
 }
 
-void Syntax::printToFile(std::string filePath) {
+void Syntax::printToFile() {
+
+    tree.printToFileTree();
+
 
 }
 
@@ -70,10 +73,10 @@ void Syntax::error(std::string errorText) {
 
 void Syntax::parseFunction() {
 
-    parseBegin(); // +
-    parseDescriptions(); // +
-    parseOperators(); // +
-    parseEnd(); // +
+    parseBegin();
+    parseDescriptions();
+    parseOperators();
+    parseEnd();
 }
 
 void Syntax::parseBegin() {
@@ -267,6 +270,16 @@ bool Syntax::isIDAhead() {
     return false;
 }
 
+void AST::operator=(const AST& obj)
+{
+    BeginName = obj.BeginName;
+    beginType = obj.beginType;
+    intVars = obj.intVars;
+    floatVars = obj.floatVars;
+    operations = obj.operations;
+    endVariable = obj.endVariable;
+}
+
 void AST::printToConsole() {
 
     std::cout << "FUNCTION:\n";
@@ -367,6 +380,109 @@ void AST::printSimpleExpr(AST::SimpleExpr* expr, int level) {
 void AST::put(int level) {
     for (int i = 0; i < level; ++i)
         std::cout << '\t';
+}
+
+void AST::printToFileTree()
+{
+    globalOutput.open("AST.txt");
+    globalOutput << "FUNCTION:\n";
+
+    globalOutput << "\tBEGIN:\n";
+    globalOutput << "\t\tFUNC TYPE: " << beginType << "\n";
+    globalOutput << "\t\tFUNC NAME: " << BeginName << "\n";
+
+    globalOutput << "\tDESCRIPTION:\n";
+    globalOutput << "\t\tINT VARS: ";
+    for (auto elem : intVars)
+        globalOutput << elem << ", ";
+    globalOutput << ";\n";
+    globalOutput << "\t\tFLOAT VARS:";
+    for (auto elem : floatVars)
+        globalOutput << elem << ", ";
+    globalOutput << ";\n";
+
+    globalOutput << "\tOPERATORS:\n";
+    for (auto elem : operations) {
+        globalOutput << "\t\tOP:\n";
+        globalOutput << "\t\t\tGOAL VAR: " << elem.first << "\n";
+        printExprFile(&elem.second, 2);
+    }
+
+    globalOutput << "\tEND:\n";
+    globalOutput << "\t\tPROGRAM END VAR: " << endVariable << "\n\n";
+
+
+}
+
+void AST::printExprFile(AST::Expr* expr, int level)
+{
+    if (!expr)
+        return;
+
+    putFile(level);
+    globalOutput << "EXPR:\n";
+
+    putFile(level);
+    globalOutput << "\tSIGN: ";
+    switch (expr->sign) {
+    case 0: {
+        globalOutput << "no sign\n";
+    } break;
+    case 1: {
+        globalOutput << "+\n";
+    } break;
+    case 2: {
+        globalOutput << "-\n";
+    } break;
+    }
+    printSimpleExprFile(expr->expr1, level + 1);
+    printExprFile(expr->expr2, level + 1);
+}
+
+void AST::printSimpleExprFile(AST::SimpleExpr* expr, int level)
+{
+    if (!expr)
+        return;
+
+    putFile(level);
+    globalOutput << "SIMPLE EXPR:\n";
+
+    switch (expr->state) {
+    case -2: {
+
+        putFile(level);
+        globalOutput << "\tVAR: " << expr->varName << "\n";
+        putFile(level);
+        globalOutput << "\tTYPE: " << expr->type << "\n";
+    } break;
+    case -1: {
+        putFile(level);
+        globalOutput << "\tCONSTANT: " << expr->constant << "\n";
+        put(level);
+        globalOutput << "\tTYPE: " << expr->type << "\n";
+    } break;
+    case 0: {
+        putFile(level);
+        globalOutput << "\tSCOBES - (EXPR): \n";
+        printExprFile(expr->expr, level + 1);
+    } break;
+    case 1: {
+        putFile(level);
+        globalOutput << "\tITOF - (EXPR): \n";
+        printExprFile(expr->expr, level + 1);
+    } break;
+    case 2: {
+        putFile(level);
+        globalOutput << "\tFTOI - (EXPR): \n";
+        printExprFile(expr->expr, level + 1);
+    } break;
+    }
+}
+
+void AST::putFile(int level)
+{
+    for (int i = 0; i < level; ++i)
+        globalOutput << '\t';
 }
 
 std::string AST::findVarType(std::string name) {

@@ -1,0 +1,59 @@
+FUNCTION:
+	BEGIN:
+		FUNC TYPE: float
+		FUNC NAME: main
+	DESCRIPTION:
+		INT VARS: a, b, c, d, ;
+		FLOAT VARS:f, g, ;
+	OPERATORS:
+		OP:
+			GOAL VAR: a
+		EXPR:
+			SIGN: no sign
+			SIMPLE EXPR:
+				FTOI - (EXPR): 
+				EXPR:
+					SIGN: no sign
+					SIMPLE EXPR:
+						CONSTANT: 3.1
+	TYPE: float
+		OP:
+			GOAL VAR: f
+		EXPR:
+			SIGN: no sign
+			SIMPLE EXPR:
+				CONSTANT: 4.1
+	TYPE: float
+		OP:
+			GOAL VAR: g
+		EXPR:
+			SIGN: -
+			SIMPLE EXPR:
+				VAR: f
+				TYPE: float
+			EXPR:
+				SIGN: +
+				SIMPLE EXPR:
+					ITOF - (EXPR): 
+					EXPR:
+						SIGN: no sign
+						SIMPLE EXPR:
+							VAR: a
+							TYPE: int
+				EXPR:
+					SIGN: no sign
+					SIMPLE EXPR:
+						ITOF - (EXPR): 
+						EXPR:
+							SIGN: -
+							SIMPLE EXPR:
+								VAR: c
+								TYPE: int
+							EXPR:
+								SIGN: no sign
+								SIMPLE EXPR:
+									VAR: d
+									TYPE: int
+	END:
+		PROGRAM END VAR: f
+

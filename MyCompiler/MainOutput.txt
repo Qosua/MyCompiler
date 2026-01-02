@@ -1,0 +1,7 @@
+float main 2 CALL
+int a b c d 4 DECL
+float f g 4 DECL
+a 3.1 ftoi 2 CALL = 
+f 4.1 = 
+g f a itof 2 CALL c d - itof 2 CALL + - = 
+return f 2 CALL

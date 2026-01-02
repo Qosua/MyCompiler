@@ -5,11 +5,15 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <fstream>
 
 class AST {
 
 public:
     AST() {};
+    AST(const AST& obj) {
+        *this = obj;
+    };
 
     struct SimpleExpr;
     struct Expr;
@@ -29,6 +33,8 @@ public:
         Expr* expr = nullptr;
     };
 
+    void operator=(const AST& obj);
+
     std::string BeginName;
     std::string beginType;
     std::vector<std::string> intVars;
@@ -40,11 +46,18 @@ public:
         >
     > operations;
     std::string endVariable;
+    std::fstream globalOutput;
 
     void printToConsole();
     void printExpr(AST::Expr* expr, int level = 0);
     void printSimpleExpr(AST::SimpleExpr* expr, int level = 0);
     void put(int level);
+
+    void printToFileTree();
+    void printExprFile(AST::Expr* expr, int level = 0);
+    void printSimpleExprFile(AST::SimpleExpr* expr, int level = 0);
+    void putFile(int level);
+
     std::string findVarType(std::string name);
     std::string findConstType(std::string name);
 
@@ -60,7 +73,7 @@ public:
     void run();
     void setTokens(std::vector<Token> tokens);
     std::vector<std::string> getErrors();
-    void printToFile(std::string filePath);
+    void printToFile();
     void printToConsole();
     AST getTree();
 
