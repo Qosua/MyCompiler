@@ -1,6 +1,9 @@
 #include "Syntax.h"
 
-Syntax::Syntax() {}
+Syntax::Syntax() {
+
+    tree = new AST;
+}
 
 void Syntax::run() {
 
@@ -23,16 +26,16 @@ std::vector<std::string> Syntax::getErrors() {
 
 void Syntax::printToFile() {
 
-    tree.printToFileTree();
+    tree->printToFileTree();
 
 
 }
 
 void Syntax::printToConsole() {
-    tree.printToConsole();
+    tree->printToConsole();
 }
 
-AST Syntax::getTree()
+AST* Syntax::getTree()
 {
     return tree;
 }
@@ -82,12 +85,12 @@ void Syntax::parseFunction() {
 void Syntax::parseBegin() {
 
     if (parseType()) 
-        tree.beginType = tokens[position - 1].lexem;
+        tree->beginType = tokens[position - 1].lexem;
 
     if (!match(LexemType::ID)) 
         error("Expected function name");
     else {
-        tree.BeginName = tokens[position - 1].lexem;
+        tree->BeginName = tokens[position - 1].lexem;
     }
     
     if (!match(LexemType::Separator, "(")) 
@@ -106,7 +109,7 @@ void Syntax::parseEnd() {
     if (!match(LexemType::ID))
         error("Expected some ID at the end");
     else
-        tree.endVariable = tokens[position - 1].lexem;
+        tree->endVariable = tokens[position - 1].lexem;
 
     if (!match(LexemType::Separator, ";")) error("Expected ';'");
     if (!match(LexemType::Separator, "}")) error("Expected '}'");
@@ -143,10 +146,12 @@ void Syntax::parseVarList() {
         error("Expected some ID");
     else {
 
-        if (lastVarType == "int")
-            tree.intVars.push_back(tokens[position - 1].lexem);
-        if (lastVarType == "float")
-            tree.floatVars.push_back(tokens[position - 1].lexem);
+        if (lastVarType == "int") {
+            (*tree->table)[tokens[position - 1].lexem].isInt = 1;
+        }
+        if (lastVarType == "float") {
+            (*tree->table)[tokens[position - 1].lexem].isInt = 2;
+        }
 
     }
 
@@ -163,14 +168,14 @@ void Syntax::parseOp() {
     if (!match(LexemType::ID))
         error("Expected ID in operator");
     else {
-        tree.operations.emplace_back();
-        tree.operations.back().first = tokens[position - 1].lexem;
+        tree->operations.emplace_back();
+        tree->operations.back().first = tokens[position - 1].lexem;
     }
 
     if (!match(LexemType::Operator, "="))
         error("Expected '='");
 
-    parseExpr(&tree.operations.back().second);
+    parseExpr(&tree->operations.back().second);
 
     if (!match(LexemType::Separator, ";"))
         error("Expected ';'");
@@ -198,14 +203,14 @@ void Syntax::parseSimpleExpr(AST::SimpleExpr* parent) {
     if (match(LexemType::ID, "", false)) {
         parent->state = -2;
         parent->varName = tokens[position - 1].lexem;
-        parent->type = tree.findVarType(parent->varName);
+        parent->type = tree->findVarType(parent->varName);
         return;
     }
 
     if (match(LexemType::Constant, "", false)) {
         parent->state = -1;
         parent->constant = tokens[position - 1].lexem;
-        parent->type = tree.findConstType(parent->constant);
+        parent->type = tree->findConstType(parent->constant);
         return;
     }
 
@@ -274,10 +279,9 @@ void AST::operator=(const AST& obj)
 {
     BeginName = obj.BeginName;
     beginType = obj.beginType;
-    intVars = obj.intVars;
-    floatVars = obj.floatVars;
     operations = obj.operations;
     endVariable = obj.endVariable;
+    table = obj.table;
 }
 
 void AST::printToConsole() {
@@ -290,12 +294,27 @@ void AST::printToConsole() {
 
     std::cout << "\tDESCRIPTION:\n";
     std::cout << "\t\tINT VARS: ";
-    for (auto elem : intVars)
-        std::cout << elem << ", ";
+    for (int i = 0; i < table->size(); ++i) {
+        for (int j = 0; j < (*table)[i].size(); ++j) {
+
+            if ((*table)[i][j].isInt == 1) {
+                std::cout << (*table)[i][j].lexem + ", ";
+            }
+        }
+
+    }
     std::cout << ";\n";
+
     std::cout << "\t\tFLOAT VARS:";
-    for (auto elem : floatVars)
-        std::cout << elem << ", ";
+    for (int i = 0; i < table->size(); ++i) {
+        for (int j = 0; j < (*table)[i].size(); ++j) {
+
+            if ((*table)[i][j].isInt == 2) {
+                std::cout << (*table)[i][j].lexem + ", ";
+            }
+        }
+
+    }
     std::cout << ";\n";
     
     std::cout << "\tOPERATORS:\n";
@@ -393,12 +412,27 @@ void AST::printToFileTree()
 
     globalOutput << "\tDESCRIPTION:\n";
     globalOutput << "\t\tINT VARS: ";
-    for (auto elem : intVars)
-        globalOutput << elem << ", ";
+    for (int i = 0; i < table->size(); ++i) {
+        for (int j = 0; j < (*table)[i].size(); ++j) {
+
+            if ((*table)[i][j].isInt == 1) {
+                globalOutput << (*table)[i][j].lexem + ", ";
+            }
+        }
+
+    }
     globalOutput << ";\n";
+
     globalOutput << "\t\tFLOAT VARS:";
-    for (auto elem : floatVars)
-        globalOutput << elem << ", ";
+    for (int i = 0; i < table->size(); ++i) {
+        for (int j = 0; j < (*table)[i].size(); ++j) {
+
+            if ((*table)[i][j].isInt == 2) {
+                globalOutput << (*table)[i][j].lexem + ", ";
+            }
+        }
+
+    }
     globalOutput << ";\n";
 
     globalOutput << "\tOPERATORS:\n";
@@ -487,10 +521,12 @@ void AST::putFile(int level)
 
 std::string AST::findVarType(std::string name) {
 
-    if (std::find(intVars.begin(), intVars.end(), name) != intVars.end())
+    int isInt = (*table)[name].isInt;
+
+    if (isInt == 1)
         return "int";
 
-    if (std::find(floatVars.begin(), floatVars.end(), name) != floatVars.end())
+    if (isInt == 2)
         return "float";
 
     return "TYPE ERROR";

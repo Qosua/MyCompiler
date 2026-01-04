@@ -37,8 +37,7 @@ public:
 
     std::string BeginName;
     std::string beginType;
-    std::vector<std::string> intVars;
-    std::vector<std::string> floatVars;
+    HashTable* table;
     std::vector<
         std::pair<
             std::string, // goal var
@@ -60,6 +59,9 @@ public:
 
     std::string findVarType(std::string name);
     std::string findConstType(std::string name);
+    void setTable(HashTable* table) {
+        this->table = table;
+    }
 
 };
 
@@ -75,14 +77,17 @@ public:
     std::vector<std::string> getErrors();
     void printToFile();
     void printToConsole();
-    AST getTree();
+    void setTable(HashTable* table) {
+        tree->table = table;
+    }
+    AST* getTree();
 
 private:
     std::vector<Token> tokens;
     std::vector<std::string> errors;
     size_t position = 0;
     Token currentToken;
-    AST tree;
+    AST* tree;
     std::string lastVarType;
     std::string lastVarName;
 

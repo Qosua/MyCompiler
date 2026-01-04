@@ -1,6 +1,6 @@
 #include "Semantics.h"
 
-void Semantics::setTree(AST _tree)  {
+void Semantics::setTree(AST* _tree)  {
 	tree = _tree;
 }
 
@@ -37,13 +37,13 @@ void Semantics::printErrors() {
 
 bool Semantics::checkMultipleVarInit() {
 
-	std::map<std::string,std::vector<std::string>> variables;
+	/*std::map<std::string,std::vector<std::string>> variables;
 
-	for (int i = 0; i < tree.intVars.size(); ++i)
-		variables[tree.intVars[i]].push_back("int");
+	for (int i = 0; i < tree->intVars.size(); ++i)
+		variables[tree->intVars[i]].push_back("int");
 
-	for (int i = 0; i < tree.floatVars.size(); ++i)
-		variables[tree.floatVars[i]].push_back("float");
+	for (int i = 0; i < tree->floatVars.size(); ++i)
+		variables[tree->floatVars[i]].push_back("float");
 
 	bool ans = true;
 
@@ -59,37 +59,24 @@ bool Semantics::checkMultipleVarInit() {
 			
 		}
 
-	return ans;
+	return ans;*/
+	return true;
 
 }
 
 bool Semantics::checkProgramReturnVarTypeToBeSureThatEveryThigIsOkay() {
 
-	bool isInt = (
-		std::find(tree.intVars.begin(), 
-				  tree.intVars.end(),
-				  tree.endVariable
-				  ) != tree.intVars.end());
+	int isInt = (*tree->table)[tree->endVariable].isInt;
 
-	bool isFloat = (
-		std::find(tree.floatVars.begin(),
-				  tree.floatVars.end(),
-				  tree.endVariable
-				  ) != tree.floatVars.end());
+	std::string type;
 
-	if (isInt and isFloat) {
-		errors.push_back("Semantics error: uncertain variable type for the program return");
-		return false;
-	}
+	if (isInt == 1)
+		type = "int";
+	else
+		if (isInt == 2)
+			type = "float";
 
-	if(!isInt and !isFloat) {
-		errors.push_back("Semantics error: return variable does not exist");
-		return false;
-	}
-
-	std::string type = (isInt ? "int" : "float");
-
-	if (type != tree.beginType) {
+	if (type != tree->beginType) {
 
 		errors.push_back("Semantics error: return var must the be same type as main function");
 		return false;
@@ -103,7 +90,7 @@ bool Semantics::checkTypesInTheExpresions() {
 
 	bool result = true;
 
-	for (auto& operation : tree.operations) {
+	for (auto& operation : tree->operations) {
 
 		result *= checkOperation(operation.first, &operation.second);
 
@@ -116,27 +103,42 @@ void Semantics::madePrefixString() {
 
 	std::string result;
 
-	result += tree.beginType + " " + tree.BeginName + " 2 CALL\n";
+	result += tree->beginType + " " + tree->BeginName + " 2 CALL\n";
+
+	int counter = 0;
 
 	result += "int";
-	for (int i = 0; i < tree.intVars.size(); ++i) {
+	for (int i = 0; i < tree->table->size(); ++i) {
+		for (int j = 0; j < (*tree->table)[i].size(); ++j) {
 
-		result += " " + tree.intVars[i];
+			if ((*tree->table)[i][j].isInt == 1) {
+				result += " " + (*tree->table)[i][j].lexem;
+				counter += 1;
+			}
+		}
 
 	}
-	result += std::string(" ") + std::to_string(tree.intVars.size()) + " DECL\n";
+	result += std::string(" ") + std::to_string(counter) + " DECL\n";
+
+	counter = 0;
 
 	result += "float";
-	for (int i = 0; i < tree.floatVars.size(); ++i) {
+	for (int i = 0; i < tree->table->size(); ++i) {
+		for (int j = 0; j < (*tree->table)[i].size(); ++j) {
 
-		result += " " + tree.floatVars[i];
+			if ((*tree->table)[i][j].isInt == 2){
+				result += " " + (*tree->table)[i][j].lexem;
+				counter += 1;
+			}
+
+		}
 
 	}
-	result += std::string(" ") + std::to_string(tree.intVars.size()) + " DECL\n";
+	result += std::string(" ") + std::to_string(counter) + " DECL\n";
 
 	result += writeExpresions();
 
-	result += "return " + tree.endVariable + " 2 CALL\n";
+	result += "return " + tree->endVariable + " 2 CALL\n";
 
 	prefix = result;
 
@@ -147,7 +149,7 @@ std::string Semantics::writeExpresions() {
 	std::string result;
 	std::stack<std::string> st;
 
-	for (auto& operation : tree.operations) {
+	for (auto& operation : tree->operations) {
 
 		st.push("=");
 
@@ -315,14 +317,10 @@ std::string Semantics::checkSimpleExpr(AST::SimpleExpr* simpleExpr) {
 
 	if (simpleExpr->state == -2) {
 
-		if (std::find(tree.intVars.begin(), tree.intVars.end(), simpleExpr->varName) == tree.intVars.end()) {
-			if (std::find(tree.floatVars.begin(), tree.floatVars.end(), simpleExpr->varName) == tree.floatVars.end()) {
-				
-				type = "TYPE ERROR";
-				errors.push_back("Semantics error: variable - " + simpleExpr->varName + " was not declared");
-			}
-			else
-				type = simpleExpr->type;
+		if (!tree->table->exists(simpleExpr->varName)) {
+
+			type = "TYPE ERROR";
+			errors.push_back("Semantics error: variable - " + simpleExpr->varName + " was not declared");
 		}
 		else
 			type = simpleExpr->type;
@@ -366,10 +364,11 @@ std::string Semantics::checkSimpleExpr(AST::SimpleExpr* simpleExpr) {
 
 std::string Semantics::getVarType(std::string name) {
 
-	if (std::find(tree.intVars.begin(), tree.intVars.end(), name) != tree.intVars.end())
-		return "int";
+	int isInt = (*tree->table)[name].isInt;
 
-	if (std::find(tree.floatVars.begin(), tree.floatVars.end(), name) != tree.floatVars.end())
+	if (isInt == 1)
+		return "int";
+	if (isInt == 2)
 		return "float";
 
 	return "TYPE ERROR";

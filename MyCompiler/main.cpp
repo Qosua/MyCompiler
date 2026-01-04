@@ -15,11 +15,16 @@ int main() {
 
     lexer.run();
 
+    auto table = lexer.getHashTable();
+
+    syntax.setTable(table);
     syntax.setTokens(lexer.getTokens());
     syntax.run();
     syntax.printToFile();
 
-    semantics.setTree(syntax.getTree());
+    auto tree = syntax.getTree();
+
+    semantics.setTree(tree);
     semantics.run();
     semantics.printToFile("MainOutput.txt");
     semantics.printErrors();

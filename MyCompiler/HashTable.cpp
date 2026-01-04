@@ -18,7 +18,17 @@ HashTable::HashTable() {
 
 }
 
+HashTable::HashTable(const HashTable& obj)
+{
+	this->arr = obj.arr;
+}
+
 HashTable::~HashTable() {}
+
+void HashTable::operator=(const HashTable& obj)
+{
+	this->arr = obj.arr;
+}
 
 void HashTable::insert(const std::string& lexem,const LexemType& type) {
 
@@ -41,7 +51,8 @@ Token& HashTable::operator[](const std::string& lexem) {
 
 	int index = hashFunction(lexem);
 
-	for (int i = 0; i < arr[index].size(); ++i) {
+	for (int i = 0; i < (*arr)[index].size(); ++i) {
+
 		if ((*arr)[index][i].lexem == lexem)
 			return (*arr)[index][i];
 	}
@@ -79,6 +90,20 @@ std::ostream& HashTable::operator<<(std::ostream& stream) {
 	}
 
 	return stream;
+}
+
+bool HashTable::exists(const std::string& lexem) {
+
+	int hash = hashFunction(lexem);
+
+	for (int i = 0; i < (*arr)[hash].size(); ++i) {
+		
+		if ((*arr)[hash][i].lexem == lexem)
+			return true;
+
+	}
+
+	return false;
 }
 
 int HashTable::hashFunction(const std::string& lexem) {

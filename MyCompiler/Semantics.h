@@ -11,7 +11,7 @@
 class Semantics {
 
 public:
-	void setTree(AST _tree);
+	void setTree(AST* _tree);
 	void run();
 	void printToFile(std::string str);
 	void printErrors();
@@ -33,7 +33,7 @@ private:
 
 	std::string getVarType(std::string name);
 
-	AST tree;
+	AST* tree;
 	std::string prefix;
 	std::vector<std::string> errors;
 

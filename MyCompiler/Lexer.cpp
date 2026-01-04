@@ -122,7 +122,7 @@ void Lexer::processInput(std::string& lexem, char& c) {
 			token.rowNumber = rowCount;
 
 			tokens.push_back(token);
-			std::cout << temp;
+			//std::cout << temp;
 		}
 	}
 
@@ -170,7 +170,7 @@ void Lexer::processInput(std::string& lexem, char& c) {
 			token.rowNumber = rowCount;
 
 			tokens.push_back(token);
-			std::cout << temp;
+			//std::cout << temp;
 		}
 	}
 
