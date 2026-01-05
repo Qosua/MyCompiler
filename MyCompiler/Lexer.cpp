@@ -22,6 +22,8 @@ Lexer::Lexer(const std::string& programmFilePath) {
 	errors = new std::vector<std::string>;
 	table = new HashTable;
 
+	syntax.setTable(table);
+
 }
 
 Lexer::~Lexer() {}
@@ -121,7 +123,7 @@ void Lexer::processInput(std::string& lexem, char& c) {
 			Token token(lexem, type);
 			token.rowNumber = rowCount;
 
-			tokens.push_back(token);
+			syntax.processToken(token);
 			//std::cout << temp;
 		}
 	}
@@ -169,7 +171,7 @@ void Lexer::processInput(std::string& lexem, char& c) {
 			Token token(lexem, type);
 			token.rowNumber = rowCount;
 
-			tokens.push_back(token);
+			syntax.processToken(token);
 			//std::cout << temp;
 		}
 	}
@@ -213,8 +215,4 @@ void Lexer::printToFile(const std::string& filePath) {
 		}
 	}
 
-}
-
-std::vector<Token> Lexer::getTokens() {
-	return tokens;
 }

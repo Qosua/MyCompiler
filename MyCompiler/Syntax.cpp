@@ -14,12 +14,6 @@ void Syntax::run() {
     parseFunction();
 }
 
-void Syntax::setTokens(std::vector<Token> tokens) {
-
-    this->tokens = tokens;
-
-}
-
 std::vector<std::string> Syntax::getErrors() {
     return errors;
 }
@@ -40,18 +34,74 @@ AST* Syntax::getTree()
     return tree;
 }
 
+void Syntax::processToken(Token token) {
+
+    tokens.push_back(token);
+
+    if (tokens.size() == 1) 
+        return;
+
+    currentToken = tokens[0];
+    position = 1;
+
+    switch (currentState)
+    {
+    case Begin: {
+        bool res = parseBegin();
+        if (res) {
+            currentState = Descr;
+            clearBuffer();
+        }
+    }
+        break;
+    case Descr: {
+        bool res = parseDescriptions();
+        if (res) {
+            currentState = Operators;
+            clearBuffer();
+        }
+    }
+        break;
+    case Operators: {
+        bool res = parseOperators();
+        if (res) {
+            currentState = End;
+            clearBuffer();
+        }
+    }
+        break;
+    case End: {
+        bool res = parseEnd();
+        if (res) {
+            currentState = Finished;
+            clearBuffer();
+        }
+    }
+        break;
+    case Finished: break;
+    default: break;
+    }
+
+    errors.clear();
+
+}
+
 bool Syntax::match(LexemType type, std::string val, bool toMoveIfFalse) {
+
+    if(position >= tokens.size())
+        return false;
+
     if (currentToken.type == type and (val == "" or currentToken.lexem == val)) {
 
-        if (position + 1 < tokens.size()) {
-            currentToken = tokens[++position];
+        if (position + 1 <= tokens.size()) {
+            currentToken = tokens[position++];
         }
 
         return true;
     }
 
-    if (toMoveIfFalse and position + 1 < tokens.size()) {
-        currentToken = tokens[++position];
+    if (toMoveIfFalse and position + 1 <= tokens.size()) {
+        currentToken = tokens[position++];
     }
     return false;
 }
@@ -70,7 +120,7 @@ bool Syntax::parseType() {
 
 void Syntax::error(std::string errorText) {
 
-    errors.push_back("Syntax error - row:" + std::to_string(tokens[position].rowNumber) + " \n\t" + errorText + "\n");
+    errors.push_back("Syntax error \n\t" + errorText + "\n");
 
 }
 
@@ -82,110 +132,176 @@ void Syntax::parseFunction() {
     parseEnd();
 }
 
-void Syntax::parseBegin() {
+bool Syntax::parseBegin() {
 
-    if (parseType()) 
+    bool res = true;
+
+    if (parseType())
         tree->beginType = tokens[position - 1].lexem;
+    else
+        res = false;
 
-    if (!match(LexemType::ID)) 
+    if (!match(LexemType::ID)) {
         error("Expected function name");
+        res = false;
+    }
     else {
         tree->BeginName = tokens[position - 1].lexem;
     }
     
-    if (!match(LexemType::Separator, "(")) 
+    if (!match(LexemType::Separator, "(")) {
         error("Expected '('");
-    if (!match(LexemType::Separator, ")")) 
+        res = false;
+    }
+    if (!match(LexemType::Separator, ")")) {
         error("Expected ')'");
-    if (!match(LexemType::Separator, "{")) 
+        res = false;
+}
+    if (!match(LexemType::Separator, "{")) {
         error("Expected '{'");
+        res = false;
+    }
+    return res;
 }
 
-void Syntax::parseEnd() {
+bool Syntax::parseEnd() {
 
-    if (!match(LexemType::KeyWord, "return")) 
+    bool res = true;
+
+    if (!match(LexemType::KeyWord, "return")) {
         error("Expected return key word");
+        res = false;
+    }
     
-    if (!match(LexemType::ID))
+    if (!match(LexemType::ID)) {
         error("Expected some ID at the end");
+        res = false;
+    }
     else
         tree->endVariable = tokens[position - 1].lexem;
 
-    if (!match(LexemType::Separator, ";")) error("Expected ';'");
-    if (!match(LexemType::Separator, "}")) error("Expected '}'");
+    if (!match(LexemType::Separator, ";")) {
+        error("Expected ';'");
+        res = false;
+    }
+    if (!match(LexemType::Separator, "}")) {
+        error("Expected '}'");
+        res = false;
+    }
+
+    return res;
 }
 
-void Syntax::parseDescriptions() {
+bool Syntax::parseDescriptions() {
+
+    bool res = true;
 
     while (isTypeAhead())
-        parseDescr();
-    
+        res *= parseDescr();
+
+    return res;
 }
 
-void Syntax::parseOperators() {
+bool Syntax::parseOperators() {
+
+    bool res = true;
 
     while (isIDAhead())
-        parseOp();
+        res *= parseOp();
     
+    return res;
 }
 
-void Syntax::parseDescr() {
+bool Syntax::parseDescr() {
+
+    bool res = true;
 
     if (parseType())
-        lastVarType = tokens[position - 1].lexem;
+        lastVarType = tokens[position - 2].lexem;
+    else
+        res = false;
     
-    parseVarList();
+    res *= parseVarList();
 
-    if (!match(LexemType::Separator, ";")) 
+    if (!match(LexemType::Separator, ";")) {
         error("Expected ';'");
+        res = false;
+    }
+    
+    return res;
 }
 
-void Syntax::parseVarList() {
+bool Syntax::parseVarList() {
 
-    if (!match(LexemType::ID)) 
+    bool res = true;
+
+    if (!match(LexemType::ID)) {
         error("Expected some ID");
+        res = false;
+    }
     else {
 
         if (lastVarType == "int") {
             (*tree->table)[tokens[position - 1].lexem].isInt = 1;
         }
-        if (lastVarType == "float") {
-            (*tree->table)[tokens[position - 1].lexem].isInt = 2;
-        }
+        else
+            if (lastVarType == "float") {
+                (*tree->table)[tokens[position - 1].lexem].isInt = 2;
+            }
+            else
+                res = false;
 
     }
 
-    if (currentToken.lexem == ";")
-        return;
+    if (currentToken.lexem == ";") {
+        return res;
+        position -= 1;
+    }
 
-    if (match(LexemType::Separator, ",", false)) {
+    if (match(LexemType::Separator, ",")) {
         parseVarList();
     }
+    else
+        res = false;
+
+    return res;
 }
 
-void Syntax::parseOp() {
+bool Syntax::parseOp() {
 
-    if (!match(LexemType::ID))
+    bool res = true;
+
+    if (!match(LexemType::ID)) {
         error("Expected ID in operator");
+        res = false;
+    }
     else {
         tree->operations.emplace_back();
         tree->operations.back().first = tokens[position - 1].lexem;
     }
 
-    if (!match(LexemType::Operator, "="))
+    if (!match(LexemType::Operator, "=")) {
         error("Expected '='");
+        res = false;
+    }
 
     parseExpr(&tree->operations.back().second);
 
-    if (!match(LexemType::Separator, ";"))
+    if (!match(LexemType::Separator, ";")) {
         error("Expected ';'");
+        res = false;
+    }
+
+    return res;
 }
 
-void Syntax::parseExpr(AST::Expr* parent) {
+bool Syntax::parseExpr(AST::Expr* parent) {
+
+    bool res = true;
 
     AST::SimpleExpr* simpleExpr1 = new AST::SimpleExpr;
     parent->expr1 = simpleExpr1;
-    parseSimpleExpr(simpleExpr1);
+    res *= parseSimpleExpr(simpleExpr1);
 
     while (match(LexemType::Operator, "+", false) or 
            match(LexemType::Operator, "-", false)) {
@@ -193,75 +309,90 @@ void Syntax::parseExpr(AST::Expr* parent) {
         parent->sign = (tokens[position - 1].lexem == "+" ? 1 : 2);
         AST::Expr* expr = new AST::Expr;
         parent->expr2 = expr;
-        parseExpr(expr);
+        res *= parseExpr(expr);
     }
+
+    return res;
     
 }
 
-void Syntax::parseSimpleExpr(AST::SimpleExpr* parent) {
+bool Syntax::parseSimpleExpr(AST::SimpleExpr* parent) {
+
+    bool res = true;
 
     if (match(LexemType::ID, "", false)) {
         parent->state = -2;
         parent->varName = tokens[position - 1].lexem;
         parent->type = tree->findVarType(parent->varName);
-        return;
+        return true;
     }
 
     if (match(LexemType::Constant, "", false)) {
         parent->state = -1;
         parent->constant = tokens[position - 1].lexem;
         parent->type = tree->findConstType(parent->constant);
-        return;
+        return true;
     }
 
     if (match(LexemType::Separator, "(", false)) {
 
         parent->expr = new AST::Expr;
         parent->state = 0;
-        parseExpr(parent->expr);
+        res *= parseExpr(parent->expr);
 
-        if (!match(LexemType::Separator, ")", false))
+        if (!match(LexemType::Separator, ")", false)) {
             error("Expected ')'");
+            res = false;
+        }
 
-        return;
+        return res;
     }
 
     if (match(LexemType::KeyWord, "itof", false)) {
-        if (!match(LexemType::Separator, "("))
+        if (!match(LexemType::Separator, "(")) {
             error("Expected '('");
+            res = false;
+        }
 
         parent->expr = new AST::Expr;
         parent->state = 1;
-        parseExpr(parent->expr);
+        res *= parseExpr(parent->expr);
 
-        if (!match(LexemType::Separator, ")"))
+        if (!match(LexemType::Separator, ")")) {
             error("Expected ')'");
+            res = false;
+        }
 
-        return;
+        return res;
     }
 
     if (match(LexemType::KeyWord, "ftoi", false)) {
-        if (!match(LexemType::Separator, "("))
+        if (!match(LexemType::Separator, "(")) {
             error("Expected '('");
+            res = false;
+        }
 
         parent->expr = new AST::Expr;
         parent->state = 2;
-        parseExpr(parent->expr);
+        res *= parseExpr(parent->expr);
 
-        if (!match(LexemType::Separator, ")"))
+        if (!match(LexemType::Separator, ")")) {
             error("Expected ')'");
+            res = false;
+        }
 
-        return;
+        return res;
     }
 
     error("Error in the arithmetic expresion syntax");
+    return false;
 
 }
 
 bool Syntax::isTypeAhead() {
 
     if (position < tokens.size())
-        if (tokens[position].lexem == "int" or tokens[position].lexem == "float")
+        if (tokens[position - 1].lexem == "int" or tokens[position - 1].lexem == "float")
             return true;
 
     return false;
@@ -273,6 +404,16 @@ bool Syntax::isIDAhead() {
             return true;
 
     return false;
+}
+
+void Syntax::clearBuffer() {
+
+    /*delete tree;
+    tree = new AST;
+    tree->table = table;*/
+    tokens.clear();
+    position = 0;
+
 }
 
 void AST::operator=(const AST& obj)

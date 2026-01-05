@@ -2,6 +2,7 @@
 
 #include "HashTable.h"
 #include "NFA.h"
+#include "Syntax.h"
 
 #include <string>
 #include <vector>
@@ -19,13 +20,13 @@ public:
 	HashTable* getHashTable();
 	std::vector<std::string> getErrors();
 	void printToFile(const std::string& filePath);
-	std::vector<Token> getTokens();
+
+	Syntax syntax;
 
 private:
 	std::fstream file;
 	HashTable* table;
 	std::vector<std::string>* errors;
-	std::vector<Token> tokens;
 	int rowCount = 1;
 
 	NumNFA numNfa;

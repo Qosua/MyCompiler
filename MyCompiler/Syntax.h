@@ -65,7 +65,13 @@ public:
 
 };
 
-
+enum SyntaxState {
+    Begin,
+    Descr,
+    Operators,
+    End,
+    Finished,
+};
 
 class Syntax {
 
@@ -73,21 +79,24 @@ public:
     Syntax();
 
     void run();
-    void setTokens(std::vector<Token> tokens);
     std::vector<std::string> getErrors();
     void printToFile();
     void printToConsole();
     void setTable(HashTable* table) {
-        tree->table = table;
+        this->table = table;
+        this->tree->table = table;
     }
     AST* getTree();
+    void processToken(Token token);
 
 private:
+    SyntaxState currentState = SyntaxState::Begin;
     std::vector<Token> tokens;
     std::vector<std::string> errors;
     size_t position = 0;
     Token currentToken;
     AST* tree;
+    HashTable* table;
     std::string lastVarType;
     std::string lastVarName;
 
@@ -95,19 +104,21 @@ private:
     void error(std::string errorText);
 
     void parseFunction();
-    void parseBegin();
-    void parseEnd();
-    void parseDescriptions();
-    void parseOperators();
-    void parseDescr();
-    void parseVarList();
+    bool parseBegin();
+    bool parseEnd();
+    bool parseDescriptions();
+    bool parseOperators();
+    bool parseDescr();
+    bool parseVarList();
     bool parseType();
-    void parseOp();
-    void parseExpr(AST::Expr* parent = nullptr);
-    void parseSimpleExpr(AST::SimpleExpr* parent = nullptr);
+    bool parseOp();
+    bool parseExpr(AST::Expr* parent = nullptr);
+    bool parseSimpleExpr(AST::SimpleExpr* parent = nullptr);
 
     bool isTypeAhead();
     bool isIDAhead();
+
+    void clearBuffer();
 
 };
 
