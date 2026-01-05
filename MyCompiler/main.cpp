@@ -14,6 +14,8 @@ int main() {
 
     lexerAndSyntax.run();
 
+    lexerAndSyntax.syntax.getTree()->printToFileTree();
+
     semantics.setTree(lexerAndSyntax.syntax.getTree());
     semantics.run();
     semantics.printToFile("MainOutput.txt");

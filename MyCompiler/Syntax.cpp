@@ -5,15 +5,6 @@ Syntax::Syntax() {
     tree = new AST;
 }
 
-void Syntax::run() {
-
-    if (position < tokens.size()) {
-        currentToken = tokens[position];
-    }
-
-    parseFunction();
-}
-
 std::vector<std::string> Syntax::getErrors() {
     return errors;
 }
@@ -41,8 +32,7 @@ void Syntax::processToken(Token token) {
     if (tokens.size() == 1) 
         return;
 
-    currentToken = tokens[0];
-    position = 1;
+    position = 0;
 
     switch (currentState)
     {
@@ -59,6 +49,7 @@ void Syntax::processToken(Token token) {
         if (res) {
             currentState = Operators;
             clearBuffer();
+            tokens.push_back(Token(kostyl, LexemType::ID));
         }
     }
         break;
@@ -67,18 +58,22 @@ void Syntax::processToken(Token token) {
         if (res) {
             currentState = End;
             clearBuffer();
+            tokens.push_back(Token(kostyl, LexemType::KeyWord));
         }
+        else
+            operations.clear();
     }
         break;
     case End: {
         bool res = parseEnd();
         if (res) {
+            assembleTree();
             currentState = Finished;
             clearBuffer();
         }
     }
         break;
-    case Finished: break;
+    case Finished:  break;
     default: break;
     }
 
@@ -91,29 +86,33 @@ bool Syntax::match(LexemType type, std::string val, bool toMoveIfFalse) {
     if(position >= tokens.size())
         return false;
 
-    if (currentToken.type == type and (val == "" or currentToken.lexem == val)) {
+    if (tokens[position].type == type and (val == "" or tokens[position].lexem == val)) {
 
-        if (position + 1 <= tokens.size()) {
-            currentToken = tokens[position++];
-        }
+        if (position < tokens.size())
+            position += 1;
+        
 
         return true;
     }
 
-    if (toMoveIfFalse and position + 1 <= tokens.size()) {
-        currentToken = tokens[position++];
-    }
+    if (toMoveIfFalse and position < tokens.size())
+        position += 1;
+    
     return false;
 }
 
 bool Syntax::parseType() {
 
-    if (match(LexemType::KeyWord, "int", false))
+    if (match(LexemType::KeyWord, "int", false)) {
         return true;
+    }
     
-    if (match(LexemType::KeyWord, "float", false))
+    if (match(LexemType::KeyWord, "float", false)) {
         return true;
-    
+    }
+
+    position += 1;
+
     error("Expected type. int or float");
     return false;
 }
@@ -124,12 +123,27 @@ void Syntax::error(std::string errorText) {
 
 }
 
-void Syntax::parseFunction() {
+std::string Syntax::idType(std::string name) {
 
-    parseBegin();
-    parseDescriptions();
-    parseOperators();
-    parseEnd();
+    int isInt = (*table)[name].isInt;
+
+    if (isInt == 1)
+        return "int";
+    if (isInt == 2)
+        return "float";
+
+    return "TYPE ERROR";
+
+}
+
+std::string Syntax::constantType(std::string name) {
+
+    for (int i = 0; i < name.size(); ++i)
+        if (name[i] == '.')
+            return "float";
+
+    return "int";
+
 }
 
 bool Syntax::parseBegin() {
@@ -137,7 +151,7 @@ bool Syntax::parseBegin() {
     bool res = true;
 
     if (parseType())
-        tree->beginType = tokens[position - 1].lexem;
+        beginType = previousLexem();
     else
         res = false;
 
@@ -146,7 +160,7 @@ bool Syntax::parseBegin() {
         res = false;
     }
     else {
-        tree->BeginName = tokens[position - 1].lexem;
+        beginName = previousLexem();
     }
     
     if (!match(LexemType::Separator, "(")) {
@@ -178,7 +192,7 @@ bool Syntax::parseEnd() {
         res = false;
     }
     else
-        tree->endVariable = tokens[position - 1].lexem;
+        endVariable = previousLexem();
 
     if (!match(LexemType::Separator, ";")) {
         error("Expected ';'");
@@ -196,28 +210,48 @@ bool Syntax::parseDescriptions() {
 
     bool res = true;
 
-    while (isTypeAhead())
+    while (parseType())
         res *= parseDescr();
 
-    return res;
+    position -= 1;
+
+    if (match(LexemType::ID)) {
+        kostyl = previousLexem();
+        return res;
+    }
+    else
+        error("Wrong transition between Descriptions and Operators");
+
+    return false;
 }
 
 bool Syntax::parseOperators() {
 
     bool res = true;
 
-    while (isIDAhead())
+    while (match(LexemType::ID))
         res *= parseOp();
-    
-    return res;
+
+    position -= 1;
+
+    if (match(LexemType::KeyWord, "return")) {
+        kostyl = previousLexem();
+        return res;
+    }
+    else
+        error("Wrong transition between Descriptions and Operators");
+
+    return false;
 }
 
 bool Syntax::parseDescr() {
 
     bool res = true;
 
+    position -= 1;
+
     if (parseType())
-        lastVarType = tokens[position - 2].lexem;
+        lastVarType = previousLexem();
     else
         res = false;
     
@@ -242,21 +276,19 @@ bool Syntax::parseVarList() {
     else {
 
         if (lastVarType == "int") {
-            (*tree->table)[tokens[position - 1].lexem].isInt = 1;
+            (*table)[tokens[position - 1].lexem].isInt = 1;
         }
         else
             if (lastVarType == "float") {
-                (*tree->table)[tokens[position - 1].lexem].isInt = 2;
+                (*table)[tokens[position - 1].lexem].isInt = 2;
             }
             else
                 res = false;
 
     }
 
-    if (currentToken.lexem == ";") {
+    if (position < tokens.size() and tokens[position].lexem == ";")
         return res;
-        position -= 1;
-    }
 
     if (match(LexemType::Separator, ",")) {
         parseVarList();
@@ -271,13 +303,15 @@ bool Syntax::parseOp() {
 
     bool res = true;
 
+    position -= 1;
+
     if (!match(LexemType::ID)) {
         error("Expected ID in operator");
         res = false;
     }
     else {
-        tree->operations.emplace_back();
-        tree->operations.back().first = tokens[position - 1].lexem;
+        operations.emplace_back();
+        operations.back().first = previousLexem();
     }
 
     if (!match(LexemType::Operator, "=")) {
@@ -285,7 +319,7 @@ bool Syntax::parseOp() {
         res = false;
     }
 
-    parseExpr(&tree->operations.back().second);
+    res *= parseExpr(&operations.back().second);
 
     if (!match(LexemType::Separator, ";")) {
         error("Expected ';'");
@@ -295,19 +329,19 @@ bool Syntax::parseOp() {
     return res;
 }
 
-bool Syntax::parseExpr(AST::Expr* parent) {
+bool Syntax::parseExpr(Expr* parent) {
 
     bool res = true;
 
-    AST::SimpleExpr* simpleExpr1 = new AST::SimpleExpr;
+    SimpleExpr* simpleExpr1 = new SimpleExpr;
     parent->expr1 = simpleExpr1;
     res *= parseSimpleExpr(simpleExpr1);
 
     while (match(LexemType::Operator, "+", false) or 
            match(LexemType::Operator, "-", false)) {
 
-        parent->sign = (tokens[position - 1].lexem == "+" ? 1 : 2);
-        AST::Expr* expr = new AST::Expr;
+        parent->sign = (previousLexem() == "+" ? 1 : 2);
+        Expr* expr = new Expr;
         parent->expr2 = expr;
         res *= parseExpr(expr);
     }
@@ -316,27 +350,27 @@ bool Syntax::parseExpr(AST::Expr* parent) {
     
 }
 
-bool Syntax::parseSimpleExpr(AST::SimpleExpr* parent) {
+bool Syntax::parseSimpleExpr(SimpleExpr* parent) {
 
     bool res = true;
 
     if (match(LexemType::ID, "", false)) {
         parent->state = -2;
-        parent->varName = tokens[position - 1].lexem;
-        parent->type = tree->findVarType(parent->varName);
+        parent->varName = previousLexem();
+        parent->type = idType(parent->varName);
         return true;
     }
 
     if (match(LexemType::Constant, "", false)) {
         parent->state = -1;
-        parent->constant = tokens[position - 1].lexem;
-        parent->type = tree->findConstType(parent->constant);
+        parent->constant = previousLexem();
+        parent->type = constantType(parent->constant);
         return true;
     }
 
     if (match(LexemType::Separator, "(", false)) {
 
-        parent->expr = new AST::Expr;
+        parent->expr = new Expr;
         parent->state = 0;
         res *= parseExpr(parent->expr);
 
@@ -354,7 +388,7 @@ bool Syntax::parseSimpleExpr(AST::SimpleExpr* parent) {
             res = false;
         }
 
-        parent->expr = new AST::Expr;
+        parent->expr = new Expr;
         parent->state = 1;
         res *= parseExpr(parent->expr);
 
@@ -372,7 +406,7 @@ bool Syntax::parseSimpleExpr(AST::SimpleExpr* parent) {
             res = false;
         }
 
-        parent->expr = new AST::Expr;
+        parent->expr = new Expr;
         parent->state = 2;
         res *= parseExpr(parent->expr);
 
@@ -389,28 +423,22 @@ bool Syntax::parseSimpleExpr(AST::SimpleExpr* parent) {
 
 }
 
-bool Syntax::isTypeAhead() {
-
-    if (position < tokens.size())
-        if (tokens[position - 1].lexem == "int" or tokens[position - 1].lexem == "float")
-            return true;
-
-    return false;
+std::string& Syntax::previousLexem() {
+    return tokens[position - 1].lexem;
 }
 
-bool Syntax::isIDAhead() {
-    if (position < tokens.size())
-        if (tokens[position].type == LexemType::ID)
-            return true;
+void Syntax::assembleTree() {
+    
+    tree->BeginName = beginName;
+    tree->beginType = beginType;
+    tree->operations = operations;
+    tree->endVariable = endVariable;
+    tree->table = table;
 
-    return false;
 }
 
 void Syntax::clearBuffer() {
 
-    /*delete tree;
-    tree = new AST;
-    tree->table = table;*/
     tokens.clear();
     position = 0;
 
@@ -472,7 +500,7 @@ void AST::printToConsole() {
 
 }
 
-void AST::printExpr(AST::Expr* expr, int level) {
+void AST::printExpr(Expr* expr, int level) {
 
     if (!expr)
         return;
@@ -497,7 +525,7 @@ void AST::printExpr(AST::Expr* expr, int level) {
     printExpr(expr->expr2, level + 1);
 }
 
-void AST::printSimpleExpr(AST::SimpleExpr* expr, int level) {
+void AST::printSimpleExpr(SimpleExpr* expr, int level) {
 
     if (!expr)
         return;
@@ -589,7 +617,7 @@ void AST::printToFileTree()
 
 }
 
-void AST::printExprFile(AST::Expr* expr, int level)
+void AST::printExprFile(Expr* expr, int level)
 {
     if (!expr)
         return;
@@ -614,7 +642,7 @@ void AST::printExprFile(AST::Expr* expr, int level)
     printExprFile(expr->expr2, level + 1);
 }
 
-void AST::printSimpleExprFile(AST::SimpleExpr* expr, int level)
+void AST::printSimpleExprFile(SimpleExpr* expr, int level)
 {
     if (!expr)
         return;

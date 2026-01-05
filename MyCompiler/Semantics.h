@@ -23,13 +23,13 @@ private:
 
 	void madePrefixString();
 	std::string writeExpresions();
-	std::string writeExpr(AST::Expr* expr, std::stack<std::string>& st);
-	std::string writeExprIF(AST::Expr* expr, std::stack<std::string>& st);
-	std::string writeSimpleExpr(AST::SimpleExpr* simpleExpr, std::stack<std::string>& st);
+	std::string writeExpr(Expr* expr, std::stack<std::string>& st);
+	std::string writeExprIF(Expr* expr, std::stack<std::string>& st);
+	std::string writeSimpleExpr(SimpleExpr* simpleExpr, std::stack<std::string>& st);
 
-	bool checkOperation(std::string varName, AST::Expr* expr);
-	std::string checkExpr(AST::Expr* expr);
-	std::string checkSimpleExpr(AST::SimpleExpr* simpleExpr);
+	bool checkOperation(std::string varName, Expr* expr);
+	std::string checkExpr(Expr* expr);
+	std::string checkSimpleExpr(SimpleExpr* simpleExpr);
 
 	std::string getVarType(std::string name);
 

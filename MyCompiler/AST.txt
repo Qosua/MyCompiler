@@ -36,10 +36,15 @@ FUNCTION:
 				SIMPLE EXPR:
 					ITOF - (EXPR): 
 					EXPR:
-						SIGN: no sign
+						SIGN: -
 						SIMPLE EXPR:
 							VAR: a
 							TYPE: int
+						EXPR:
+							SIGN: no sign
+							SIMPLE EXPR:
+								VAR: a
+								TYPE: int
 				EXPR:
 					SIGN: no sign
 					SIMPLE EXPR:

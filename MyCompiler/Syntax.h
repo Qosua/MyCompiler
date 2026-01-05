@@ -7,30 +7,30 @@
 #include <string>
 #include <fstream>
 
+struct SimpleExpr;
+struct Expr;
+
+struct Expr {
+    int sign = 0; // 0 - only expr1, 1 - plus, 2 - minus
+    SimpleExpr* expr1 = nullptr;
+    Expr* expr2 = nullptr;
+};
+
+struct SimpleExpr {
+    int state; // -2 - var, -1 - constant, 
+    // 0 - scobes, 1 - itof, 2 - ftoi
+    std::string varName;
+    std::string constant;
+    std::string type;
+    Expr* expr = nullptr;
+};
+
 class AST {
 
 public:
     AST() {};
     AST(const AST& obj) {
         *this = obj;
-    };
-
-    struct SimpleExpr;
-    struct Expr;
-    
-    struct Expr {
-        int sign = 0; // 0 - only expr1, 1 - plus, 2 - minus
-        SimpleExpr* expr1 = nullptr;
-        Expr* expr2 = nullptr;
-    };
-
-    struct SimpleExpr {
-        int state; // -2 - var, -1 - constant, 
-                   // 0 - scobes, 1 - itof, 2 - ftoi
-        std::string varName;
-        std::string constant;
-        std::string type;
-        Expr* expr = nullptr;
     };
 
     void operator=(const AST& obj);
@@ -41,20 +41,20 @@ public:
     std::vector<
         std::pair<
             std::string, // goal var
-            AST::Expr
+            Expr
         >
     > operations;
     std::string endVariable;
     std::fstream globalOutput;
 
     void printToConsole();
-    void printExpr(AST::Expr* expr, int level = 0);
-    void printSimpleExpr(AST::SimpleExpr* expr, int level = 0);
+    void printExpr(Expr* expr, int level = 0);
+    void printSimpleExpr(SimpleExpr* expr, int level = 0);
     void put(int level);
 
     void printToFileTree();
-    void printExprFile(AST::Expr* expr, int level = 0);
-    void printSimpleExprFile(AST::SimpleExpr* expr, int level = 0);
+    void printExprFile(Expr* expr, int level = 0);
+    void printSimpleExprFile(SimpleExpr* expr, int level = 0);
     void putFile(int level);
 
     std::string findVarType(std::string name);
@@ -78,7 +78,6 @@ class Syntax {
 public:
     Syntax();
 
-    void run();
     std::vector<std::string> getErrors();
     void printToFile();
     void printToConsole();
@@ -90,20 +89,37 @@ public:
     void processToken(Token token);
 
 private:
-    SyntaxState currentState = SyntaxState::Begin;
     std::vector<Token> tokens;
     std::vector<std::string> errors;
+
+    SyntaxState currentState = SyntaxState::Begin;
     size_t position = 0;
-    Token currentToken;
+
     AST* tree;
+    // -------------------tree parts-------------------
+    std::string beginName;
+    std::string beginType;
     HashTable* table;
+    std::vector<
+        std::pair<
+        std::string, // goal var
+        Expr
+        >
+    > operations;
+    std::string endVariable;
+    std::fstream globalOutput;
+    // -------------------tree parts-------------------
+
     std::string lastVarType;
     std::string lastVarName;
 
+    std::string kostyl;
+
     bool match(LexemType type, std::string val = "", bool toMoveIfFalse = true);
     void error(std::string errorText);
+    std::string idType(std::string name);
+    std::string constantType(std::string name);
 
-    void parseFunction();
     bool parseBegin();
     bool parseEnd();
     bool parseDescriptions();
@@ -112,12 +128,12 @@ private:
     bool parseVarList();
     bool parseType();
     bool parseOp();
-    bool parseExpr(AST::Expr* parent = nullptr);
-    bool parseSimpleExpr(AST::SimpleExpr* parent = nullptr);
+    bool parseExpr(Expr* parent = nullptr);
+    bool parseSimpleExpr(SimpleExpr* parent = nullptr);
 
-    bool isTypeAhead();
-    bool isIDAhead();
+    std::string& previousLexem();
 
+    void assembleTree();
     void clearBuffer();
 
 };

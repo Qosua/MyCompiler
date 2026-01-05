@@ -169,7 +169,7 @@ std::string Semantics::writeExpresions() {
 	return result;
 }
 
-std::string Semantics::writeExpr(AST::Expr* expr, std::stack<std::string>& st) {
+std::string Semantics::writeExpr(Expr* expr, std::stack<std::string>& st) {
 
 	std::string result;
 
@@ -193,7 +193,7 @@ std::string Semantics::writeExpr(AST::Expr* expr, std::stack<std::string>& st) {
 	return result;
 }
 
-std::string Semantics::writeExprIF(AST::Expr* expr, std::stack<std::string>& st) {
+std::string Semantics::writeExprIF(Expr* expr, std::stack<std::string>& st) {
 
 	std::string result;
 
@@ -224,7 +224,7 @@ std::string Semantics::writeExprIF(AST::Expr* expr, std::stack<std::string>& st)
 	return result;
 }
 
-std::string Semantics::writeSimpleExpr(AST::SimpleExpr* simpleExpr, std::stack<std::string>& st) {
+std::string Semantics::writeSimpleExpr(SimpleExpr* simpleExpr, std::stack<std::string>& st) {
 
 	// struct SimpleExpr 
 	// -2 - var, -1 - constant, 
@@ -263,7 +263,7 @@ std::string Semantics::writeSimpleExpr(AST::SimpleExpr* simpleExpr, std::stack<s
 	return result;
 }
 
-bool Semantics::checkOperation(std::string varName, AST::Expr* expr) {
+bool Semantics::checkOperation(std::string varName, Expr* expr) {
 
 	std::string varType = getVarType(varName);
 	std::string exprType = checkExpr(expr);
@@ -277,7 +277,7 @@ bool Semantics::checkOperation(std::string varName, AST::Expr* expr) {
 	return true;
 }
 
-std::string Semantics::checkExpr(AST::Expr* expr) {
+std::string Semantics::checkExpr(Expr* expr) {
 
 	// struct Expr  
 	// 0 - nothing, 1 - plus, 2 - minus
@@ -307,7 +307,7 @@ std::string Semantics::checkExpr(AST::Expr* expr) {
 	return type;
 }
 
-std::string Semantics::checkSimpleExpr(AST::SimpleExpr* simpleExpr) {
+std::string Semantics::checkSimpleExpr(SimpleExpr* simpleExpr) {
 
 	// struct SimpleExpr 
 	// -2 - var, -1 - constant, 
